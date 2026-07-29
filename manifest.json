@@ -1,0 +1,11 @@
+{
+  "name": "商务专员工作台",
+  "short_name": "商务工作台",
+  "description": "订单跟进 · 每日任务 · 月报总结",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#2563eb",
+  "orientation": "any",
+  "icons": []
+}

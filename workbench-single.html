@@ -1,0 +1,2811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>商务专员工作台</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="商务工作台">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <style>
+/* ========== 全局变量 ========== */
+:root {
+  --sidebar-width: 220px;
+  --header-height: 56px;
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --primary-dark: #1d4ed8;
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --purple: #8b5cf6;
+  --purple-light: #ede9fe;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --transition: all 0.2s ease;
+}
+
+/* ========== Reset ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--gray-100);
+  color: var(--gray-800);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ========== 布局 ========== */
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+/* ========== 侧边栏 ========== */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--gray-900);
+  color: var(--gray-300);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-header .logo {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--purple));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-header .title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.sidebar-header .subtitle {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--gray-400);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: var(--transition);
+  margin-bottom: 2px;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.nav-item .icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-600);
+  padding: 16px 14px 6px;
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 11px;
+  color: var(--gray-600);
+}
+
+/* ========== 主内容区 ========== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  height: var(--header-height);
+  background: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-date {
+  font-size: 13px;
+  color: var(--gray-500);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: var(--gray-100);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.btn-icon:hover {
+  background: var(--gray-200);
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ========== 页面通用 ========== */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== 卡片 ========== */
+.card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-body { padding: 20px; }
+
+/* ========== 统计卡片 ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+}
+
+.stat-card.green::before { background: var(--success); }
+.stat-card.purple::before { background: var(--purple); }
+.stat-card.orange::before { background: var(--warning); }
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.stat-icon.blue { background: var(--primary-light); color: var(--primary); }
+.stat-icon.green { background: var(--success-light); color: var(--success); }
+.stat-icon.purple { background: var(--purple-light); color: var(--purple); }
+.stat-icon.orange { background: var(--warning-light); color: var(--warning); }
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+/* ========== 按钮 ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+.btn-secondary:hover { background: var(--gray-200); }
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover { opacity: 0.9; }
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--gray-600);
+  padding: 6px 10px;
+}
+.btn-ghost:hover { background: var(--gray-100); }
+
+/* ========== 表单 ========== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  color: var(--gray-800);
+  background: #fff;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ========== 表格 ========== */
+.table-wrap {
+  overflow-x: auto;
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+table.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  color: var(--gray-600);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid var(--gray-200);
+  white-space: nowrap;
+}
+
+table.data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+
+table.data-table tbody tr {
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+table.data-table tbody tr:hover {
+  background: var(--gray-50);
+}
+
+table.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========== 标签 ========== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag-blue { background: var(--primary-light); color: var(--primary-dark); }
+.tag-green { background: var(--success-light); color: #065f46; }
+.tag-purple { background: var(--purple-light); color: #5b21b6; }
+.tag-orange { background: var(--warning-light); color: #92400e; }
+.tag-gray { background: var(--gray-100); color: var(--gray-600); }
+.tag-red { background: var(--danger-light); color: #991b1b; }
+
+/* ========== 进度条 ========== */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--purple));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ========== 模态框 ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  width: 520px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--gray-400);
+  padding: 4px;
+  line-height: 1;
+}
+
+.modal-close:hover { color: var(--gray-700); }
+
+.modal-body { padding: 24px; }
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ========== 任务列表 ========== */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  transition: var(--transition);
+}
+
+.task-item:hover { background: var(--gray-50); }
+
+.task-item:last-child { border-bottom: none; }
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-300);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.task-checkbox.checked {
+  background: var(--success);
+  border-color: var(--success);
+  color: #fff;
+  font-size: 12px;
+}
+
+.task-content { flex: 1; min-width: 0; }
+
+.task-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+
+.task-item.completed .task-title {
+  text-decoration: line-through;
+  color: var(--gray-400);
+}
+
+.task-desc {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.task-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.task-item:hover .task-actions { opacity: 1; }
+
+/* ========== 进度流程 ========== */
+.workflow-phase {
+  margin-bottom: 24px;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.phase-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.phase-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.phase-line {
+  flex: 1;
+  height: 2px;
+  background: var(--gray-200);
+  margin-left: 8px;
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 14px;
+  border-left: 2px solid var(--gray-200);
+  margin-left: 13px;
+  padding-bottom: 8px;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0 8px 16px;
+  position: relative;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+
+.step-item:hover { background: var(--gray-50); }
+
+.step-item::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 14px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  background: #fff;
+}
+
+.step-item.completed::before {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.step-item.current::before {
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+}
+
+.step-item.skipped::before {
+  background: var(--gray-300);
+  border-color: var(--gray-400);
+}
+
+.step-info { flex: 1; }
+
+.step-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+.step-item.completed .step-name { color: var(--success); }
+.step-item.current .step-name { color: var(--primary); font-weight: 600; }
+.step-item.skipped .step-name { color: var(--gray-400); text-decoration: line-through; }
+.step-item.skipped.optional .step-name { text-decoration: none; color: var(--gray-400); }
+
+.step-meta {
+  font-size: 11.5px;
+  color: var(--gray-400);
+  margin-top: 2px;
+}
+
+.step-note {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.step-optional-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  margin-left: 6px;
+}
+
+/* ========== 筛选栏 ========== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-bar .form-input,
+.filter-bar .form-select {
+  width: auto;
+  min-width: 160px;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.search-box .search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  font-size: 14px;
+}
+
+/* ========== 空状态 ========== */
+empty-state, .empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray-400);
+}
+
+.empty-state .icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-state .text {
+  font-size: 14px;
+}
+
+/* ========== 月报 ========== */
+.report-section {
+  margin-bottom: 28px;
+}
+
+.report-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.report-stat {
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--gray-200);
+}
+
+.report-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.report-stat-label {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.report-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 160px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.chart-bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar {
+  width: 60%;
+  max-width: 48px;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.4s ease;
+  min-height: 2px;
+  position: relative;
+}
+
+.chart-bar-label {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.chart-bar-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-700);
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ========== 订单详情 ========== */
+.order-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.order-detail-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-bottom: 2px;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--gray-900);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  box-shadow: var(--shadow-lg);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: toastIn 0.2s ease;
+}
+
+@keyframes toastIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+/* ========== 响应式 ========== */
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .report-stat-row { grid-template-columns: repeat(3, 1fr); }
+  .order-detail-info { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  /* 侧边栏折叠 */
+  .sidebar {
+    width: 52px;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 12px 8px;
+    justify-content: center;
+  }
+  .sidebar-header .title,
+  .sidebar-header .subtitle,
+  .sidebar-footer { display: none; }
+  .nav-item {
+    justify-content: center;
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+  .nav-item span:not(.icon) { display: none; }
+  .nav-item .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 9px;
+    padding: 1px 4px;
+    min-width: 14px;
+  }
+  .nav-item { position: relative; }
+  .nav-section-label { display: none; }
+
+  /* 顶部栏 */
+  .topbar {
+    padding: 0 12px;
+    height: 48px;
+  }
+  .topbar-title { font-size: 14px; }
+  .topbar-right { gap: 8px; }
+  .topbar-date { font-size: 11px; }
+
+  /* 内容区 */
+  .content-area { padding: 12px; }
+
+  /* 统计卡片 */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 22px; }
+  .stat-label { font-size: 11px; }
+  .stat-icon { width: 32px; height: 32px; font-size: 16px; margin-bottom: 8px; }
+
+  /* 仪表盘双列 */
+  #page-dashboard > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 表单 */
+  .form-row { grid-template-columns: 1fr; gap: 10px; }
+  .form-input, .form-select { font-size: 16px; padding: 10px 12px; }
+  .form-textarea { font-size: 16px; min-height: 60px; }
+
+  /* 按钮 */
+  .btn { padding: 8px 14px; font-size: 13px; }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+
+  /* 筛选栏 */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .filter-bar .form-input,
+  .filter-bar .form-select {
+    width: 100%;
+    min-width: auto;
+  }
+  .search-box { max-width: none; }
+
+  /* 表格 - 移动端卡片式 */
+  table.data-table thead { display: none; }
+  table.data-table tbody tr {
+    display: block;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  table.data-table tbody tr td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: none;
+    font-size: 12.5px;
+  }
+  table.data-table tbody tr td:first-child { font-weight: 600; }
+  table.data-table tbody tr td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    color: var(--gray-400);
+    font-weight: 500;
+    min-width: 70px;
+  }
+
+  /* 订单详情 */
+  .order-detail-info {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .detail-value { font-size: 13px; }
+
+  /* 步骤 */
+  .step-item {
+    padding: 10px 0 10px 12px;
+    gap: 8px;
+  }
+  .step-name { font-size: 12.5px; }
+  .step-item .btn { font-size: 11px; padding: 4px 8px; }
+
+  /* 月报 */
+  .report-stat-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .report-stat { padding: 12px 8px; }
+  .report-stat-value { font-size: 20px; }
+  .report-stat-label { font-size: 11px; }
+
+  /* 图表 */
+  .report-chart { height: 120px; gap: 8px; }
+  .chart-bar { width: 50%; }
+
+  /* 模态框 */
+  .modal {
+    width: 95vw;
+    max-height: 90vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-top: auto;
+  }
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
+  .modal-footer { padding: 12px 16px; flex-wrap: wrap; }
+  .modal-footer .btn { flex: 1; min-width: 80px; }
+
+  /* 任务项 */
+  .task-item { padding: 12px; }
+  .task-checkbox {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+  }
+  .task-actions {
+    opacity: 1;
+    flex-direction: column;
+  }
+  .task-actions .btn-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Toast */
+  .toast {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* 卡片 */
+  .card-header { padding: 12px 14px; }
+  .card-body { padding: 14px; }
+  .card-title { font-size: 14px; }
+
+  /* 订单详情按钮 */
+  #page-order-detail > div:first-child {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  #page-order-detail > div:first-child .btn {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* 小屏手机 (<480px) */
+@media (max-width: 480px) {
+  .sidebar { width: 44px; }
+  .nav-item { padding: 10px 6px; }
+  .nav-item .icon { font-size: 14px; }
+
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 10px; }
+  .stat-value { font-size: 18px; }
+  .stat-icon { width: 28px; height: 28px; }
+
+  .topbar { height: 44px; padding: 0 10px; }
+  .topbar-title { font-size: 13px; }
+  .content-area { padding: 8px; }
+
+  .report-stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ========== 侧边栏 ========== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">📋</div>
+      <div>
+        <div class="title">商务工作台</div>
+        <div class="subtitle">订单 · 任务 · 月报</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">工作</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="icon">🏠</span>
+        <span>工作台首页</span>
+      </div>
+      <div class="nav-item" data-page="tasks">
+        <span class="icon">✅</span>
+        <span>每日任务</span>
+        <span class="badge" id="nav-task-badge">0</span>
+      </div>
+      <div class="nav-item" data-page="orders">
+        <span class="icon">📦</span>
+        <span>订单管理</span>
+      </div>
+      <div class="nav-item" data-page="report">
+        <span class="icon">📊</span>
+        <span>月报总结</span>
+      </div>
+      <div class="nav-section-label">系统</div>
+      <div class="nav-item" id="btn-reset-data">
+        <span class="icon">🔄</span>
+        <span>重置示例数据</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      数据存储于本地浏览器
+    </div>
+  </aside>
+
+  <!-- ========== 主内容区 ========== -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-title">工作台首页</div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date">📅</div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ===== 首页 ===== -->
+      <div class="page active" id="page-dashboard">
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">📦</div>
+            <div class="stat-value" id="dash-total-orders">0</div>
+            <div class="stat-label">订单总数</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-icon purple">⏳</div>
+            <div class="stat-value" id="dash-in-progress">0</div>
+            <div class="stat-label">进行中订单</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-icon orange">📌</div>
+            <div class="stat-value" id="dash-today-tasks">0</div>
+            <div class="stat-label">今日待办任务</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon green">🎉</div>
+            <div class="stat-value" id="dash-completed-orders">0</div>
+            <div class="stat-label">已完成订单</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <!-- 今日任务 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">✅ 今日任务</div>
+              <button class="btn btn-sm btn-primary" onclick="App.toggleTask;document.querySelector('.nav-item[data-page=tasks]').click()">查看全部</button>
+            </div>
+            <div class="card-body" style="padding:0" id="dash-tasks"></div>
+          </div>
+
+          <!-- 订单概览 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📦 进行中订单</div>
+              <button class="btn btn-sm btn-primary" onclick="document.querySelector('.nav-item[data-page=orders]').click()">查看全部</button>
+            </div>
+            <div class="card-body" style="padding:0" id="dash-orders"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 每日任务 ===== -->
+      <div class="page" id="page-tasks">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">✅ 任务管理</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="date" class="form-input" id="task-date-input" style="width:auto">
+              <button class="btn btn-primary" id="btn-add-task">+ 新增任务</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:12px 20px;display:flex;gap:20px;border-bottom:1px solid var(--gray-100)">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:24px;font-weight:700;color:var(--danger)" id="task-count-pending">0</span>
+              <span style="font-size:12px;color:var(--gray-500)">待办</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:24px;font-weight:700;color:var(--success)" id="task-count-done">0</span>
+              <span style="font-size:12px;color:var(--gray-500)">已完成</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:24px;font-weight:700;color:var(--gray-700)" id="task-count-total">0</span>
+              <span style="font-size:12px;color:var(--gray-500)">合计</span>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0" id="task-list"></div>
+        </div>
+      </div>
+
+      <!-- ===== 订单管理 ===== -->
+      <div class="page" id="page-orders">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📦 订单管理
+              <span style="font-size:13px;font-weight:400;color:var(--gray-400);margin-left:8px">共 <span id="order-count">0</span> 条</span>
+            </div>
+            <button class="btn btn-primary" id="btn-add-order">+ 新增订单</button>
+          </div>
+          <div class="card-body" style="padding-bottom:0">
+            <div class="filter-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="order-search" placeholder="搜索订单号 / 项目名 / 客户名">
+              </div>
+              <select class="form-select" id="order-filter-sp" style="width:auto">
+                <option value="">全部销售员</option>
+              </select>
+              <select class="form-select" id="order-filter-phase" style="width:auto">
+                <option value="">全部阶段</option>
+                <option value="前期评审环节">前期评审环节</option>
+                <option value="下单环节">下单环节</option>
+                <option value="发货环节">发货环节</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>订单号</th>
+                  <th>项目名称</th>
+                  <th>客户</th>
+                  <th>销售员</th>
+                  <th>当前阶段</th>
+                  <th>进度</th>
+                  <th style="text-align:right">合同金额</th>
+                </tr>
+              </thead>
+              <tbody id="order-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 订单详情 ===== -->
+      <div class="page" id="page-order-detail">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button class="btn btn-secondary" id="btn-back-orders">← 返回列表</button>
+          <button class="btn btn-secondary" id="btn-edit-order">✎ 编辑订单</button>
+          <button class="btn btn-danger" id="btn-delete-order">🗑 删除</button>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+              <div>
+                <div style="font-size:20px;font-weight:700;color:var(--gray-900)" id="detail-project-name"></div>
+                <div style="font-size:14px;color:var(--gray-500);margin-top:4px" id="detail-order-number"></div>
+              </div>
+              <div id="detail-phase"></div>
+            </div>
+            <div class="order-detail-info">
+              <div class="detail-field">
+                <span class="detail-label">客户名称</span>
+                <span class="detail-value" id="detail-customer"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">销售员</span>
+                <span class="detail-value" id="detail-salesperson"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">方案号</span>
+                <span class="detail-value" id="detail-proposal-number"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">合同金额</span>
+                <span class="detail-value" id="detail-amount"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">创建日期</span>
+                <span class="detail-value" id="detail-created"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">备注</span>
+                <span class="detail-value" id="detail-remark"></span>
+              </div>
+            </div>
+            <div style="margin-top:8px">
+              <span class="detail-label">完成进度</span>
+              <div style="margin-top:6px" id="detail-progress"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📍 订单进度流程</div>
+          </div>
+          <div class="card-body" id="detail-workflow"></div>
+        </div>
+      </div>
+
+      <!-- ===== 月报总结 ===== -->
+      <div class="page" id="page-report">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">📊 月报总结</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select class="form-select" id="report-year" style="width:auto">
+                <option value="2025">2025年</option>
+                <option value="2026" selected>2026年</option>
+              </select>
+              <select class="form-select" id="report-month" style="width:auto">
+                <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+                <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+                <option value="7" selected>7月</option><option value="8">8月</option><option value="9">9月</option>
+                <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+              </select>
+              <button class="btn btn-primary" id="btn-generate-report">生成月报</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="report-stat-row">
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-month-orders">0</div>
+                <div class="report-stat-label">本月新增订单</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-month-amount">¥0</div>
+                <div class="report-stat-label">本月合同金额</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-task-rate">0%</div>
+                <div class="report-stat-label">本月任务完成率</div>
+              </div>
+            </div>
+            <div class="report-stat-row">
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-total-orders">0</div>
+                <div class="report-stat-label">累计订单总数</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-completed-orders">0</div>
+                <div class="report-stat-label">已完成订单</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-in-progress">0</div>
+                <div class="report-stat-label">进行中订单</div>
+              </div>
+            </div>
+            <div class="report-stat-row">
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-total-amount">¥0</div>
+                <div class="report-stat-label">累计合同金额</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-task-done">0</div>
+                <div class="report-stat-label">本月完成任务</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-task-total">0</div>
+                <div class="report-stat-label">本月任务总数</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📈 订单阶段分布</div></div>
+            <div class="card-body">
+              <div class="report-chart" id="report-chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📉 近6个月订单趋势</div></div>
+            <div class="card-body">
+              <div class="report-chart" id="report-trend"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">👥 按销售员统计</div></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>销售员</th>
+                  <th>订单总数</th>
+                  <th>已完成</th>
+                  <th>进行中</th>
+                  <th style="text-align:right">合同金额</th>
+                </tr>
+              </thead>
+              <tbody id="report-sp-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">📝 月报总结</div></div>
+          <div class="card-body">
+            <p id="report-summary" style="font-size:14px;line-height:1.8;color:var(--gray-700)"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ========== 模态框: 步骤更新 ========== -->
+<div class="modal-overlay" id="step-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="step-modal-title">更新步骤</div>
+      <button class="modal-close" onclick="document.getElementById('step-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">步骤说明</label>
+        <div style="font-size:13px;color:var(--gray-500);padding:8px 12px;background:var(--gray-50);border-radius:6px" id="step-modal-desc"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">状态</label>
+          <select class="form-select" id="step-status"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">完成日期</label>
+          <input type="date" class="form-input" id="step-date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="step-note" placeholder="填写备注信息..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('step-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-save-step">确认更新</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 模态框: 新增/编辑订单 ========== -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="order-modal-title">新增订单</div>
+      <button class="modal-close" onclick="document.getElementById('order-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="order-form-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">订单号 *</label>
+          <input type="text" class="form-input" id="order-number" placeholder="如 DD202607001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">销售员 *</label>
+          <input type="text" class="form-input" id="order-salesperson" placeholder="如 张伟">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">项目名称 *</label>
+        <input type="text" class="form-input" id="order-project-name" placeholder="如 智慧园区安防系统">
+      </div>
+      <div class="form-group">
+        <label class="form-label">客户名称 *</label>
+        <input type="text" class="form-input" id="order-customer" placeholder="如 深圳市科创科技有限公司">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">方案号</label>
+          <input type="text" class="form-input" id="order-proposal-number" placeholder="如 FA202607001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">合同金额</label>
+          <input type="number" class="form-input" id="order-amount" placeholder="如 580000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="order-remark" placeholder="备注信息..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('order-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-save-order">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 模态框: 新增/编辑任务 ========== -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="task-modal-title">新增任务</div>
+      <button class="modal-close" onclick="document.getElementById('task-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">任务标题 *</label>
+        <input type="text" class="form-input" id="task-title" placeholder="如 跟进DD202607001订单U8录入">
+      </div>
+      <div class="form-group">
+        <label class="form-label">任务描述</label>
+        <textarea class="form-textarea" id="task-description" placeholder="任务详细描述..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">日期 *</label>
+          <input type="date" class="form-input" id="task-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">优先级</label>
+          <select class="form-select" id="task-priority">
+            <option value="high">高优先</option>
+            <option value="medium" selected>中优先</option>
+            <option value="low">低优先</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">关联订单</label>
+        <select class="form-select" id="task-related-order"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('task-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-save-task">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/**
+ * 数据存储层 - 使用 localStorage 持久化
+ * 管理订单、任务、月报数据
+ */
+
+// ========== 订单流程定义 ==========
+const WORKFLOW = {
+  phases: [
+    {
+      id: 'review',
+      name: '前期评审环节',
+      color: '#3b82f6',
+      steps: [
+        { key: 'project_init', name: '立项（取方案号）', required: true, desc: '项目立项，获取方案编号' },
+        { key: 'bid_review', name: '标书评审', required: false, desc: '标书评审（部分项目无标书可跳过）' },
+        { key: 'bid_stamp', name: '标书盖章', required: false, desc: '标书盖章（无标书则跳过）' },
+        { key: 'contract_biz', name: '合同评审-商务评审', required: true, desc: '合同商务条款评审' },
+        { key: 'contract_tech', name: '合同评审-技术评审', required: true, desc: '合同技术条款评审' },
+        { key: 'contract_stamp', name: '合同盖章', required: true, desc: '合同盖章确认' },
+      ]
+    },
+    {
+      id: 'order',
+      name: '下单环节',
+      color: '#8b5cf6',
+      steps: [
+        { key: 'make_production_order', name: '制作生产订单', required: true, desc: '制作生产订单文件' },
+        { key: 'order_meeting', name: '召开新订单沟通会', required: true, desc: '组织召开新订单沟通会议' },
+        { key: 'send_minutes', name: '发送纪要（邮件）', required: true, desc: '会议结束后发送会议纪要邮件' },
+        { key: 'place_order', name: '取订单号下单', required: true, desc: '找技术部签名后发下单通知邮件' },
+        { key: 'u8_add_inventory', name: 'U8系统新增存货', required: true, desc: '在U8系统中新增存货档案' },
+        { key: 'u8_add_sales_order', name: 'U8系统新增销售订单', required: true, desc: '存货审核通过后在U8新增销售订单' },
+        { key: 'order_change_notice', name: '订单变更通知', required: false, desc: '如有变更则发送变更通知' },
+        { key: 'u8_change_inventory', name: 'U8系统变更存货', required: false, desc: '如变更大项则在U8变更存货' },
+        { key: 'fat', name: 'FAT', required: false, desc: '如需进行FAT验收' },
+      ]
+    },
+    {
+      id: 'shipping',
+      name: '发货环节',
+      color: '#10b981',
+      steps: [
+        { key: 'make_shipping_order', name: '制作发货单', required: true, desc: '制作发货单据' },
+        { key: 'shipping_notice', name: '发货通知', required: true, desc: '发送发货通知' },
+        { key: 'u8_shipping', name: 'U8系统发货', required: true, desc: '在U8系统中完成发货操作' },
+      ]
+    }
+  ]
+};
+
+// 获取所有步骤的扁平列表
+const ALL_STEPS = WORKFLOW.phases.flatMap(p => p.steps.map(s => ({ ...s, phaseId: p.id, phaseName: p.name, phaseColor: p.color })));
+
+// 步骤key到名称的映射
+const STEP_MAP = {};
+ALL_STEPS.forEach(s => { STEP_MAP[s.key] = s; });
+
+// ========== 示例数据 ==========
+const SAMPLE_ORDERS = [
+  {
+    id: 'ord_001',
+    orderNumber: 'DD202607001',
+    projectName: '智慧园区安防系统',
+    customer: '深圳市科创科技有限公司',
+    salesperson: '张伟',
+    proposalNumber: 'FA202607001',
+    contractAmount: 580000,
+    createdAt: '2026-06-15',
+    remark: '重点项目，需加快进度',
+    steps: {
+      'project_init': { status: 'completed', date: '2026-06-15', note: '方案号FA202607001' },
+      'bid_review': { status: 'completed', date: '2026-06-18', note: '标书评审通过' },
+      'bid_stamp': { status: 'completed', date: '2026-06-20', note: '' },
+      'contract_biz': { status: 'completed', date: '2026-06-25', note: '商务条款确认' },
+      'contract_tech': { status: 'completed', date: '2026-06-27', note: '技术参数确认' },
+      'contract_stamp': { status: 'completed', date: '2026-06-30', note: '' },
+      'make_production_order': { status: 'completed', date: '2026-07-02', note: '' },
+      'order_meeting': { status: 'completed', date: '2026-07-05', note: '参会人员齐' },
+      'send_minutes': { status: 'completed', date: '2026-07-05', note: '已发邮件' },
+      'place_order': { status: 'completed', date: '2026-07-08', note: '技术部已签' },
+      'u8_add_inventory': { status: 'completed', date: '2026-07-10', note: '' },
+      'u8_add_sales_order': { status: 'current', date: '', note: '等待存货审核' },
+      'order_change_notice': { status: 'pending', date: '', note: '' },
+      'u8_change_inventory': { status: 'pending', date: '', note: '' },
+      'fat': { status: 'pending', date: '', note: '' },
+      'make_shipping_order': { status: 'pending', date: '', note: '' },
+      'shipping_notice': { status: 'pending', date: '', note: '' },
+      'u8_shipping': { status: 'pending', date: '', note: '' },
+    }
+  },
+  {
+    id: 'ord_002',
+    orderNumber: 'DD202607002',
+    projectName: '工业自动化产线改造',
+    customer: '广州精密制造有限公司',
+    salesperson: '李娜',
+    proposalNumber: 'FA202607002',
+    contractAmount: 1200000,
+    createdAt: '2026-07-01',
+    remark: '',
+    steps: {
+      'project_init': { status: 'completed', date: '2026-07-01', note: '' },
+      'bid_review': { status: 'skipped', date: '', note: '无标书' },
+      'bid_stamp': { status: 'skipped', date: '', note: '无标书' },
+      'contract_biz': { status: 'completed', date: '2026-07-05', note: '' },
+      'contract_tech': { status: 'current', date: '', note: '技术评审中' },
+      'contract_stamp': { status: 'pending', date: '', note: '' },
+      'make_production_order': { status: 'pending', date: '', note: '' },
+      'order_meeting': { status: 'pending', date: '', note: '' },
+      'send_minutes': { status: 'pending', date: '', note: '' },
+      'place_order': { status: 'pending', date: '', note: '' },
+      'u8_add_inventory': { status: 'pending', date: '', note: '' },
+      'u8_add_sales_order': { status: 'pending', date: '', note: '' },
+      'order_change_notice': { status: 'pending', date: '', note: '' },
+      'u8_change_inventory': { status: 'pending', date: '', note: '' },
+      'fat': { status: 'pending', date: '', note: '' },
+      'make_shipping_order': { status: 'pending', date: '', note: '' },
+      'shipping_notice': { status: 'pending', date: '', note: '' },
+      'u8_shipping': { status: 'pending', date: '', note: '' },
+    }
+  },
+  {
+    id: 'ord_003',
+    orderNumber: 'DD202607003',
+    projectName: '数据中心机房建设',
+    customer: '北京云服务股份有限公司',
+    salesperson: '张伟',
+    proposalNumber: 'FA202607003',
+    contractAmount: 850000,
+    createdAt: '2026-07-10',
+    remark: '客户催促尽快发货',
+    steps: {
+      'project_init': { status: 'completed', date: '2026-07-10', note: '' },
+      'bid_review': { status: 'completed', date: '2026-07-12', note: '' },
+      'bid_stamp': { status: 'completed', date: '2026-07-13', note: '' },
+      'contract_biz': { status: 'completed', date: '2026-07-15', note: '' },
+      'contract_tech': { status: 'completed', date: '2026-07-16', note: '' },
+      'contract_stamp': { status: 'completed', date: '2026-07-18', note: '' },
+      'make_production_order': { status: 'completed', date: '2026-07-20', note: '' },
+      'order_meeting': { status: 'completed', date: '2026-07-22', note: '' },
+      'send_minutes': { status: 'completed', date: '2026-07-22', note: '' },
+      'place_order': { status: 'completed', date: '2026-07-24', note: '' },
+      'u8_add_inventory': { status: 'completed', date: '2026-07-25', note: '' },
+      'u8_add_sales_order': { status: 'completed', date: '2026-07-26', note: '' },
+      'order_change_notice': { status: 'completed', date: '2026-07-27', note: '数量微调' },
+      'u8_change_inventory': { status: 'pending', date: '', note: '' },
+      'fat': { status: 'current', date: '', note: '安排FAT验收中' },
+      'make_shipping_order': { status: 'pending', date: '', note: '' },
+      'shipping_notice': { status: 'pending', date: '', note: '' },
+      'u8_shipping': { status: 'pending', date: '', note: '' },
+    }
+  },
+  {
+    id: 'ord_004',
+    orderNumber: 'DD202606018',
+    projectName: '智能仓储管理系统',
+    customer: '上海物流集团',
+    salesperson: '王强',
+    proposalNumber: 'FA202606018',
+    contractAmount: 430000,
+    createdAt: '2026-06-05',
+    remark: '已全部完成',
+    steps: {
+      'project_init': { status: 'completed', date: '2026-06-05', note: '' },
+      'bid_review': { status: 'completed', date: '2026-06-08', note: '' },
+      'bid_stamp': { status: 'completed', date: '2026-06-09', note: '' },
+      'contract_biz': { status: 'completed', date: '2026-06-12', note: '' },
+      'contract_tech': { status: 'completed', date: '2026-06-13', note: '' },
+      'contract_stamp': { status: 'completed', date: '2026-06-15', note: '' },
+      'make_production_order': { status: 'completed', date: '2026-06-18', note: '' },
+      'order_meeting': { status: 'completed', date: '2026-06-20', note: '' },
+      'send_minutes': { status: 'completed', date: '2026-06-20', note: '' },
+      'place_order': { status: 'completed', date: '2026-06-22', note: '' },
+      'u8_add_inventory': { status: 'completed', date: '2026-06-24', note: '' },
+      'u8_add_sales_order': { status: 'completed', date: '2026-06-25', note: '' },
+      'order_change_notice': { status: 'skipped', date: '', note: '无变更' },
+      'u8_change_inventory': { status: 'skipped', date: '', note: '无变更' },
+      'fat': { status: 'skipped', date: '', note: '无需FAT' },
+      'make_shipping_order': { status: 'completed', date: '2026-06-28', note: '' },
+      'shipping_notice': { status: 'completed', date: '2026-06-29', note: '' },
+      'u8_shipping': { status: 'completed', date: '2026-06-30', note: '' },
+    }
+  },
+];
+
+const SAMPLE_TASKS = [
+  { id: 'task_001', title: '跟进DD202607001订单U8销售订单录入', description: '等待存货审核通过后录入销售订单', date: '2026-07-28', priority: 'high', completed: false, relatedOrder: 'ord_001' },
+  { id: 'task_002', title: '准备DD202607002合同技术评审材料', description: '整理技术参数清单提交技术部评审', date: '2026-07-28', priority: 'high', completed: false, relatedOrder: 'ord_002' },
+  { id: 'task_003', title: '联系客户确认FAT验收时间', description: 'DD202607003项目FAT验收安排', date: '2026-07-28', priority: 'medium', completed: false, relatedOrder: 'ord_003' },
+  { id: 'task_004', title: '发送上周订单沟通会纪要邮件', description: '整理并发送会议纪要', date: '2026-07-28', priority: 'medium', completed: true, relatedOrder: '' },
+  { id: 'task_005', title: '跟进U8系统存货审核进度', description: '联系财务部确认审核时间', date: '2026-07-29', priority: 'low', completed: false, relatedOrder: 'ord_001' },
+];
+
+// ========== 存储管理 ==========
+const STORAGE_KEYS = {
+  orders: 'workbench_orders',
+  tasks: 'workbench_tasks',
+  meta: 'workbench_meta'
+};
+
+const Store = {
+  // 初始化
+  init() {
+    if (!localStorage.getItem(STORAGE_KEYS.orders)) {
+      localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.tasks)) {
+      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(SAMPLE_TASKS));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.meta)) {
+      localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
+    }
+  },
+
+  // 重置数据
+  resetAll() {
+    localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
+    localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(SAMPLE_TASKS));
+    localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
+  },
+
+  // ========== 订单 ==========
+  getOrders() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || '[]');
+  },
+
+  getOrder(id) {
+    return this.getOrders().find(o => o.id === id);
+  },
+
+  saveOrders(orders) {
+    localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(orders));
+  },
+
+  addOrder(order) {
+    const orders = this.getOrders();
+    order.id = 'ord_' + Date.now();
+    order.createdAt = new Date().toISOString().split('T')[0];
+    // 初始化所有步骤
+    order.steps = {};
+    ALL_STEPS.forEach(s => {
+      order.steps[s.key] = { status: 'pending', date: '', note: '' };
+    });
+    // 第一步设为当前
+    order.steps[ALL_STEPS[0].key] = { status: 'current', date: '', note: '' };
+    orders.unshift(order);
+    this.saveOrders(orders);
+    return order;
+  },
+
+  updateOrder(id, updates) {
+    const orders = this.getOrders();
+    const idx = orders.findIndex(o => o.id === id);
+    if (idx >= 0) {
+      orders[idx] = { ...orders[idx], ...updates };
+      this.saveOrders(orders);
+      return orders[idx];
+    }
+    return null;
+  },
+
+  deleteOrder(id) {
+    const orders = this.getOrders().filter(o => o.id !== id);
+    this.saveOrders(orders);
+  },
+
+  updateStep(orderId, stepKey, status, date, note) {
+    const orders = this.getOrders();
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      order.steps[stepKey] = { status, date, note: note || '' };
+      // 自动推进current状态
+      if (status === 'completed') {
+        const stepList = ALL_STEPS;
+        const currentIdx = stepList.findIndex(s => s.key === stepKey);
+        // 找下一个非跳过的步骤
+        for (let i = currentIdx + 1; i < stepList.length; i++) {
+          if (order.steps[stepList[i].key].status === 'pending') {
+            order.steps[stepList[i].key].status = 'current';
+            break;
+          }
+        }
+      }
+      this.saveOrders(orders);
+    }
+  },
+
+  // 获取订单当前阶段
+  getOrderPhase(order) {
+    const steps = ALL_STEPS;
+    for (let i = 0; i < steps.length; i++) {
+      const s = order.steps[steps[i].key];
+      if (s.status === 'current' || s.status === 'pending') {
+        return steps[i].phaseName;
+      }
+    }
+    return '已完成';
+  },
+
+  // 获取订单进度百分比
+  getOrderProgress(order) {
+    const requiredSteps = ALL_STEPS.filter(s => s.required);
+    const completed = requiredSteps.filter(s => order.steps[s.key].status === 'completed').length;
+    return Math.round((completed / requiredSteps.length) * 100);
+  },
+
+  // 获取销售员列表
+  getSalespersons() {
+    const orders = this.getOrders();
+    return [...new Set(orders.map(o => o.salesperson))];
+  },
+
+  // ========== 任务 ==========
+  getTasks() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.tasks) || '[]');
+  },
+
+  getTasksByDate(date) {
+    return this.getTasks().filter(t => t.date === date);
+  },
+
+  addTask(task) {
+    const tasks = this.getTasks();
+    task.id = 'task_' + Date.now();
+    tasks.unshift(task);
+    localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+    return task;
+  },
+
+  updateTask(id, updates) {
+    const tasks = this.getTasks();
+    const idx = tasks.findIndex(t => t.id === id);
+    if (idx >= 0) {
+      tasks[idx] = { ...tasks[idx], ...updates };
+      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+      return tasks[idx];
+    }
+    return null;
+  },
+
+  deleteTask(id) {
+    const tasks = this.getTasks().filter(t => t.id !== id);
+    localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+  },
+
+  toggleTask(id) {
+    const tasks = this.getTasks();
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      task.completed = !task.completed;
+      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+    }
+  },
+};
+
+// 导出
+if (typeof window !== 'undefined') {
+  window.WORKFLOW = WORKFLOW;
+  window.ALL_STEPS = ALL_STEPS;
+  window.STEP_MAP = STEP_MAP;
+  window.Store = Store;
+}
+
+</script>
+<script>
+/**
+ * 商务专员工作台 - 主应用逻辑
+ */
+(function() {
+  'use strict';
+
+  // ========== 工具函数 ==========
+  const $ = (sel, parent = document) => parent.querySelector(sel);
+  const $$ = (sel, parent = document) => Array.from(parent.querySelectorAll(sel));
+
+  function fmtMoney(n) {
+    return '\u00a5' + Number(n || 0).toLocaleString('zh-CN');
+  }
+
+  function fmtDate(d) {
+    if (!d) return '-';
+    return d;
+  }
+
+  function todayStr() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function todayDisplay() {
+    const d = new Date();
+    const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 星期${weekdays[d.getDay()]}`;
+  }
+
+  function showToast(msg, type = '') {
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.innerHTML = `<span>\u2713</span> ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+  }
+
+  // ========== 导航 ==========
+  const pages = ['dashboard', 'tasks', 'orders', 'report'];
+  let currentPage = 'dashboard';
+
+  function navigate(page) {
+    currentPage = page;
+    // 隐藏订单详情页
+    const detailPage = $('#page-order-detail');
+    if (detailPage) detailPage.classList.remove('active');
+    // 重置所有页面的 display 样式并切换 active 类
+    pages.forEach(p => {
+      const el = $(`#page-${p}`);
+      el.style.display = '';
+      el.classList.toggle('active', p === page);
+    });
+    $$('.nav-item[data-page]').forEach(item => {
+      item.classList.toggle('active', item.dataset.page === page);
+    });
+    const titles = {
+      dashboard: '\u5de5\u4f5c\u53f0\u9996\u9875',
+      tasks: '\u6bcf\u65e5\u5de5\u4f5c\u4efb\u52a1',
+      orders: '\u8ba2\u5355\u7ba1\u7406',
+      report: '\u6708\u62a5\u603b\u7ed3'
+    };
+    $('#topbar-title').textContent = titles[page] || '';
+
+    // 渲染对应页面
+    if (page === 'dashboard') renderDashboard();
+    if (page === 'tasks') renderTasks();
+    if (page === 'orders') renderOrders();
+    if (page === 'report') renderReport();
+  }
+
+  // ========== 首页 Dashboard ==========
+  function renderDashboard() {
+    const orders = Store.getOrders();
+    const todayTasks = Store.getTasksByDate(todayStr());
+    const pendingTasks = todayTasks.filter(t => !t.completed);
+
+    // 统计
+    const inReview = orders.filter(o => Store.getOrderPhase(o) === '\u524d\u671f\u8bc4\u5ba1\u73af\u8282').length;
+    const inOrder = orders.filter(o => Store.getOrderPhase(o) === '\u4e0b\u5355\u73af\u8282').length;
+    const inShipping = orders.filter(o => Store.getOrderPhase(o) === '\u53d1\u8d27\u73af\u8282').length;
+    const completed = orders.filter(o => Store.getOrderPhase(o) === '\u5df2\u5b8c\u6210').length;
+
+    $('#dash-total-orders').textContent = orders.length;
+    $('#dash-in-progress').textContent = inReview + inOrder + inShipping;
+    $('#dash-today-tasks').textContent = pendingTasks.length;
+    $('#dash-completed-orders').textContent = completed;
+
+    // 今日任务
+    const taskList = $('#dash-tasks');
+    if (todayTasks.length === 0) {
+      taskList.innerHTML = '<div class="empty-state"><div class="icon">\u2705</div><div class="text">\u4eca\u65e5\u6682\u65e0\u4efb\u52a1</div></div>';
+    } else {
+      taskList.innerHTML = todayTasks.slice(0, 6).map(t => `
+        <div class="task-item ${t.completed ? 'completed' : ''}">
+          <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="App.toggleTask('${t.id}')">${t.completed ? '\u2713' : ''}</div>
+          <div class="task-content">
+            <div class="task-title">${escapeHtml(t.title)}</div>
+            ${t.description ? `<div class="task-desc">${escapeHtml(t.description)}</div>` : ''}
+            <div class="task-meta">
+              <span class="tag ${priorityTag(t.priority)}">${priorityLabel(t.priority)}</span>
+              ${t.relatedOrder ? `<span class="tag tag-gray">\u5173\u8054\u8ba2\u5355</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 订单概览
+    const orderList = $('#dash-orders');
+    const activeOrders = orders.filter(o => Store.getOrderPhase(o) !== '\u5df2\u5b8c\u6210').slice(0, 5);
+    if (activeOrders.length === 0) {
+      orderList.innerHTML = '<div class="empty-state"><div class="text">\u6682\u65e0\u8fdb\u884c\u4e2d\u7684\u8ba2\u5355</div></div>';
+    } else {
+      orderList.innerHTML = activeOrders.map(o => {
+        const progress = Store.getOrderProgress(o);
+        const phase = Store.getOrderPhase(o);
+        return `
+          <div class="task-item" style="cursor:pointer" onclick="App.viewOrder('${o.id}')">
+            <div class="task-content">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="task-title">${escapeHtml(o.projectName)}</span>
+                <span class="tag ${phaseTag(phase)}">${phaseShort(phase)}</span>
+              </div>
+              <div class="task-desc" style="margin-top:4px">
+                ${o.orderNumber} | ${escapeHtml(o.salesperson)} | ${escapeHtml(o.customer)}
+              </div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+                <div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${progress}%"></div></div>
+                <span style="font-size:12px;color:var(--gray-500);min-width:36px">${progress}%</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 更新侧边栏徽章
+    updateBadges();
+  }
+
+  // ========== 每日任务 ==========
+  let taskFilterDate = null;
+
+  function renderTasks() {
+    const date = taskFilterDate || todayStr();
+    $('#task-date-input').value = date;
+    const tasks = Store.getTasksByDate(date);
+    const pending = tasks.filter(t => !t.completed);
+    const done = tasks.filter(t => t.completed);
+
+    const list = $('#task-list');
+    if (tasks.length === 0) {
+      list.innerHTML = '<div class="empty-state"><div class="icon">\u2705</div><div class="text">\u8be5\u65e5\u671f\u6682\u65e0\u4efb\u52a1\uff0c\u70b9\u51fb\u53f3\u4e0a\u89d2\u6dfb\u52a0\u4efb\u52a1</div></div>';
+    } else {
+      const html = [
+        ...pending.map(t => taskItemHtml(t)),
+        ...done.map(t => taskItemHtml(t))
+      ].join('');
+      list.innerHTML = html;
+    }
+
+    // 统计
+    $('#task-count-pending').textContent = pending.length;
+    $('#task-count-done').textContent = done.length;
+    $('#task-count-total').textContent = tasks.length;
+    updateBadges();
+  }
+
+  function taskItemHtml(t) {
+    const order = t.relatedOrder ? Store.getOrder(t.relatedOrder) : null;
+    return `
+      <div class="task-item ${t.completed ? 'completed' : ''}">
+        <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="App.toggleTask('${t.id}')">${t.completed ? '\u2713' : ''}</div>
+        <div class="task-content">
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          ${t.description ? `<div class="task-desc">${escapeHtml(t.description)}</div>` : ''}
+          <div class="task-meta">
+            <span class="tag ${priorityTag(t.priority)}">${priorityLabel(t.priority)}</span>
+            ${order ? `<span class="tag tag-blue" style="cursor:pointer" onclick="App.viewOrder('${order.id}');event.stopPropagation()">${order.orderNumber}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="btn-icon" title="\u7f16\u8f91" onclick="App.editTask('${t.id}')">\u270e</button>
+          <button class="btn-icon" title="\u5220\u9664" onclick="App.deleteTask('${t.id}')">\u2717</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ========== 订单管理 ==========
+  let orderFilter = { salesperson: '', keyword: '', phase: '' };
+
+  function renderOrders() {
+    const orders = Store.getOrders();
+    const salespersons = Store.getSalespersons();
+
+    // 填充销售员筛选
+    const spSelect = $('#order-filter-sp');
+    spSelect.innerHTML = '<option value="">\u5168\u90e8\u9500\u552e\u5458</option>' +
+      salespersons.map(s => `<option value="${escapeAttr(s)}" ${orderFilter.salesperson === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+
+    // 筛选
+    let filtered = orders;
+    if (orderFilter.salesperson) {
+      filtered = filtered.filter(o => o.salesperson === orderFilter.salesperson);
+    }
+    if (orderFilter.phase) {
+      filtered = filtered.filter(o => Store.getOrderPhase(o) === orderFilter.phase);
+    }
+    if (orderFilter.keyword) {
+      const kw = orderFilter.keyword.toLowerCase();
+      filtered = filtered.filter(o =>
+        o.orderNumber.toLowerCase().includes(kw) ||
+        o.projectName.toLowerCase().includes(kw) ||
+        o.customer.toLowerCase().includes(kw)
+      );
+    }
+
+    // 渲染表格
+    const tbody = $('#order-tbody');
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-400)">\u672a\u627e\u5230\u5339\u914d\u7684\u8ba2\u5355</td></tr>';
+    } else {
+      tbody.innerHTML = filtered.map(o => {
+        const phase = Store.getOrderPhase(o);
+        const progress = Store.getOrderProgress(o);
+        const currentStep = getCurrentStepName(o);
+        return `
+          <tr onclick="App.viewOrder('${o.id}')">
+            <td data-label="\u8ba2\u5355\u53f7"><strong>${escapeHtml(o.orderNumber)}</strong></td>
+            <td data-label="\u9879\u76ee\u540d\u79f0">${escapeHtml(o.projectName)}</td>
+            <td data-label="\u5ba2\u6237">${escapeHtml(o.customer)}</td>
+            <td data-label="\u9500\u552e\u5458">${escapeHtml(o.salesperson)}</td>
+            <td data-label="\u5f53\u524d\u9636\u6bb5">
+              <span class="tag ${phaseTag(phase)}">${phaseShort(phase)}</span>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:4px">${escapeHtml(currentStep)}</div>
+            </td>
+            <td data-label="\u8fdb\u5ea6">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${progress}%"></div></div>
+                <span style="font-size:12px">${progress}%</span>
+              </div>
+            </td>
+            <td data-label="\u5408\u540c\u91d1\u989d" style="text-align:right">${fmtMoney(o.contractAmount)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    $('#order-count').textContent = filtered.length;
+    updateBadges();
+  }
+
+  function getCurrentStepName(order) {
+    const steps = ALL_STEPS;
+    for (let s of steps) {
+      const st = order.steps[s.key];
+      if (st.status === 'current') return '\u2192 ' + s.name;
+    }
+    const allDone = steps.every(s => order.steps[s.key].status === 'completed' || order.steps[s.key].status === 'skipped');
+    if (allDone) return '\u2705 \u5df2\u5b8c\u6210';
+    return '-';
+  }
+
+  // ========== 订单详情 ==========
+  let currentOrderId = null;
+
+  function viewOrder(id) {
+    currentOrderId = id;
+    const order = Store.getOrder(id);
+    if (!order) return;
+
+    const phase = Store.getOrderPhase(order);
+    const progress = Store.getOrderProgress(order);
+
+    $('#detail-order-number').textContent = order.orderNumber;
+    $('#detail-project-name').textContent = order.projectName;
+    $('#detail-customer').textContent = order.customer;
+    $('#detail-salesperson').textContent = order.salesperson;
+    $('#detail-proposal-number').textContent = order.proposalNumber || '-';
+    $('#detail-amount').textContent = fmtMoney(order.contractAmount);
+    $('#detail-created').textContent = fmtDate(order.createdAt);
+    $('#detail-phase').innerHTML = `<span class="tag ${phaseTag(phase)}">${phase}</span>`;
+    $('#detail-progress').innerHTML = `<div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${progress}%"></div></div><span style="font-size:13px;font-weight:600">${progress}%</span></div>`;
+    $('#detail-remark').textContent = order.remark || '\u65e0';
+
+    // 渲染流程
+    const flowEl = $('#detail-workflow');
+    flowEl.innerHTML = WORKFLOW.phases.map((p, pi) => {
+      const stepsHtml = p.steps.map(s => {
+        const st = order.steps[s.key] || { status: 'pending', date: '', note: '' };
+        const statusClass = st.status;
+        const optionalTag = s.required ? '' : '<span class="step-optional-tag">\u53ef\u9009</span>';
+        const dateStr = st.date ? `\u00b7 ${st.date}` : '';
+        const noteStr = st.note ? `<div class="step-note">${escapeHtml(st.note)}</div>` : '';
+        const actionBtn = st.status === 'pending' || st.status === 'current'
+          ? `<button class="btn btn-sm btn-primary" style="margin-left:auto" onclick="App.openStepModal('${s.key}')">\u66f4\u65b0</button>`
+          : (st.status === 'completed'
+            ? `<button class="btn btn-sm btn-ghost" style="margin-left:auto" onclick="App.revertStep('${s.key}')">\u64a4\u56de</button>`
+            : '');
+        return `
+          <div class="step-item ${statusClass} ${s.required ? '' : 'optional'}" onclick="${st.status === 'pending' || st.status === 'current' ? `App.openStepModal('${s.key}')` : ''}">
+            <div class="step-info">
+              <div class="step-name">${escapeHtml(s.name)}${optionalTag}</div>
+              <div class="step-meta">${escapeHtml(s.desc)} ${dateStr}</div>
+              ${noteStr}
+            </div>
+            ${actionBtn}
+          </div>
+        `;
+      }).join('');
+
+      const phaseColors = { review: '#3b82f6', order: '#8b5cf6', shipping: '#10b981' };
+      const color = phaseColors[p.id] || '#3b82f6';
+
+      return `
+        <div class="workflow-phase">
+          <div class="phase-header">
+            <div class="phase-badge" style="background:${color}">${pi + 1}</div>
+            <span class="phase-name">${escapeHtml(p.name)}</span>
+            <div class="phase-line"></div>
+          </div>
+          <div class="step-list">${stepsHtml}</div>
+        </div>
+      `;
+    }).join('');
+
+    navigate('orders');
+    $('#page-orders').classList.remove('active');
+    $('#page-order-detail').classList.add('active');
+    $('#topbar-title').textContent = `\u8ba2\u5355\u8be6\u60c5 - ${order.orderNumber}`;
+  }
+
+  function backToOrders() {
+    $('#page-order-detail').classList.remove('active');
+    $('#page-orders').classList.add('active');
+    $('#topbar-title').textContent = '\u8ba2\u5355\u7ba1\u7406';
+    renderOrders();
+  }
+
+  // ========== 步骤更新模态框 ==========
+  let currentStepKey = null;
+
+  function openStepModal(stepKey) {
+    currentStepKey = stepKey;
+    const order = Store.getOrder(currentOrderId);
+    const step = STEP_MAP[stepKey];
+    const st = order.steps[stepKey];
+
+    $('#step-modal-title').textContent = step.name;
+    $('#step-modal-desc').textContent = step.desc;
+    $('#step-status').value = st.status === 'current' ? 'completed' : st.status;
+    $('#step-date').value = st.date || todayStr();
+    $('#step-note').value = st.note || '';
+
+    // 可选步骤增加跳过选项
+    const statusSelect = $('#step-status');
+    if (!step.required) {
+      if (![...statusSelect.options].some(o => o.value === 'skipped')) {
+        statusSelect.innerHTML = `
+          <option value="completed">\u2713 \u5b8c\u6210</option>
+          <option value="pending">\u5f85\u5904\u7406</option>
+          <option value="skipped">\u8df3\u8fc7\uff08\u4e0d\u9700\u8981\uff09</option>
+        `;
+      }
+    } else {
+      statusSelect.innerHTML = `
+        <option value="completed">\u2713 \u5b8c\u6210</option>
+        <option value="pending">\u5f85\u5904\u7406</option>
+      `;
+    }
+    statusSelect.value = st.status === 'current' ? 'completed' : st.status;
+
+    $('#step-modal').classList.add('show');
+  }
+
+  function saveStep() {
+    const status = $('#step-status').value;
+    const date = $('#step-date').value;
+    const note = $('#step-note').value;
+    Store.updateStep(currentOrderId, currentStepKey, status, date, note);
+    $('#step-modal').classList.remove('show');
+    showToast('\u6b65\u9aa4\u5df2\u66f4\u65b0', 'success');
+    viewOrder(currentOrderId);
+  }
+
+  function revertStep(stepKey) {
+    Store.updateStep(currentOrderId, stepKey, 'pending', '', '');
+    showToast('\u5df2\u64a4\u56de');
+    viewOrder(currentOrderId);
+  }
+
+  // ========== 新增/编辑订单 ==========
+  function openOrderModal() {
+    $('#order-modal-title').textContent = '\u65b0\u589e\u8ba2\u5355';
+    $('#order-form').reset();
+    $('#order-form-id').value = '';
+    $('#order-modal').classList.add('show');
+  }
+
+  function editOrder() {
+    const order = Store.getOrder(currentOrderId);
+    if (!order) return;
+    $('#order-modal-title').textContent = '\u7f16\u8f91\u8ba2\u5355';
+    $('#order-form-id').value = order.id;
+    $('#order-number').value = order.orderNumber;
+    $('#order-project-name').value = order.projectName;
+    $('#order-customer').value = order.customer;
+    $('#order-salesperson').value = order.salesperson;
+    $('#order-proposal-number').value = order.proposalNumber || '';
+    $('#order-amount').value = order.contractAmount || '';
+    $('#order-remark').value = order.remark || '';
+    $('#order-modal').classList.add('show');
+  }
+
+  function saveOrder() {
+    const id = $('#order-form-id').value;
+    const data = {
+      orderNumber: $('#order-number').value.trim(),
+      projectName: $('#order-project-name').value.trim(),
+      customer: $('#order-customer').value.trim(),
+      salesperson: $('#order-salesperson').value.trim(),
+      proposalNumber: $('#order-proposal-number').value.trim(),
+      contractAmount: parseFloat($('#order-amount').value) || 0,
+      remark: $('#order-remark').value.trim(),
+    };
+
+    if (!data.orderNumber || !data.projectName || !data.customer || !data.salesperson) {
+      showToast('\u8bf7\u586b\u5199\u5fc5\u586b\u5b57\u6bb5', 'error');
+      return;
+    }
+
+    if (id) {
+      Store.updateOrder(id, data);
+      showToast('\u8ba2\u5355\u5df2\u66f4\u65b0', 'success');
+    } else {
+      Store.addOrder(data);
+      showToast('\u8ba2\u5355\u5df2\u6dfb\u52a0', 'success');
+    }
+    $('#order-modal').classList.remove('show');
+    renderOrders();
+  }
+
+  function deleteOrder() {
+    if (!currentOrderId) return;
+    if (!confirm('\u786e\u8ba4\u5220\u9664\u6b64\u8ba2\u5355\uff1f\u6b64\u64cd\u4f5c\u4e0d\u53ef\u64a4\u9500\u3002')) return;
+    Store.deleteOrder(currentOrderId);
+    showToast('\u8ba2\u5355\u5df2\u5220\u9664', 'success');
+    backToOrders();
+  }
+
+  // ========== 新增/编辑任务 ==========
+  let editingTaskId = null;
+
+  function openTaskModal() {
+    $('#task-modal-title').textContent = '\u65b0\u589e\u4efb\u52a1';
+    $('#task-form').reset();
+    $('#task-date').value = taskFilterDate || todayStr();
+    editingTaskId = null;
+
+    // 填充关联订单下拉
+    const orders = Store.getOrders();
+    $('#task-related-order').innerHTML = '<option value="">\u4e0d\u5173\u8054</option>' +
+      orders.map(o => `<option value="${o.id}">${escapeHtml(o.orderNumber)} - ${escapeHtml(o.projectName)}</option>`).join('');
+
+    $('#task-modal').classList.add('show');
+  }
+
+  function editTask(id) {
+    const task = Store.getTasks().find(t => t.id === id);
+    if (!task) return;
+    $('#task-modal-title').textContent = '\u7f16\u8f91\u4efb\u52a1';
+    $('#task-title').value = task.title;
+    $('#task-description').value = task.description || '';
+    $('#task-date').value = task.date;
+    $('#task-priority').value = task.priority;
+    editingTaskId = id;
+
+    const orders = Store.getOrders();
+    $('#task-related-order').innerHTML = '<option value="">\u4e0d\u5173\u8054</option>' +
+      orders.map(o => `<option value="${o.id}" ${task.relatedOrder === o.id ? 'selected' : ''}>${escapeHtml(o.orderNumber)} - ${escapeHtml(o.projectName)}</option>`).join('');
+
+    $('#task-modal').classList.add('show');
+  }
+
+  function saveTask() {
+    const data = {
+      title: $('#task-title').value.trim(),
+      description: $('#task-description').value.trim(),
+      date: $('#task-date').value,
+      priority: $('#task-priority').value,
+      completed: false,
+      relatedOrder: $('#task-related-order').value || ''
+    };
+
+    if (!data.title || !data.date) {
+      showToast('\u8bf7\u586b\u5199\u4efb\u52a1\u6807\u9898\u548c\u65e5\u671f', 'error');
+      return;
+    }
+
+    if (editingTaskId) {
+      Store.updateTask(editingTaskId, data);
+      showToast('\u4efb\u52a1\u5df2\u66f4\u65b0', 'success');
+    } else {
+      Store.addTask(data);
+      showToast('\u4efb\u52a1\u5df2\u6dfb\u52a0', 'success');
+    }
+    $('#task-modal').classList.remove('show');
+    renderTasks();
+  }
+
+  function deleteTask(id) {
+    if (!confirm('\u786e\u8ba4\u5220\u9664\u6b64\u4efb\u52a1\uff1f')) return;
+    Store.deleteTask(id);
+    showToast('\u4efb\u52a1\u5df2\u5220\u9664', 'success');
+    renderTasks();
+  }
+
+  function toggleTask(id) {
+    Store.toggleTask(id);
+    renderTasks();
+    if (currentPage === 'dashboard') renderDashboard();
+  }
+
+  // ========== 月报 ==========
+  function renderReport() {
+    const year = parseInt($('#report-year').value) || new Date().getFullYear();
+    const month = parseInt($('#report-month').value) || (new Date().getMonth() + 1);
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+
+    const orders = Store.getOrders();
+    const tasks = Store.getTasks();
+
+    // 本月订单
+    const monthOrders = orders.filter(o => o.createdAt && o.createdAt.startsWith(monthStr));
+    const monthTasks = tasks.filter(t => t.date && t.date.startsWith(monthStr));
+
+    // 统计
+    const totalOrders = orders.length;
+    const monthOrderCount = monthOrders.length;
+    const completedOrders = orders.filter(o => Store.getOrderPhase(o) === '\u5df2\u5b8c\u6210').length;
+    const inProgress = totalOrders - completedOrders;
+    const monthTaskDone = monthTasks.filter(t => t.completed).length;
+    const monthTaskTotal = monthTasks.length;
+    const taskRate = monthTaskTotal > 0 ? Math.round((monthTaskDone / monthTaskTotal) * 100) : 0;
+    const totalAmount = orders.reduce((sum, o) => sum + (o.contractAmount || 0), 0);
+    const monthAmount = monthOrders.reduce((sum, o) => sum + (o.contractAmount || 0), 0);
+
+    // 填充统计
+    $('#report-month-orders').textContent = monthOrderCount;
+    $('#report-total-orders').textContent = totalOrders;
+    $('#report-completed-orders').textContent = completedOrders;
+    $('#report-in-progress').textContent = inProgress;
+    $('#report-task-rate').textContent = taskRate + '%';
+    $('#report-month-amount').textContent = fmtMoney(monthAmount);
+    $('#report-total-amount').textContent = fmtMoney(totalAmount);
+    $('#report-task-done').textContent = monthTaskDone;
+    $('#report-task-total').textContent = monthTaskTotal;
+
+    // 按销售员统计
+    const spStats = {};
+    orders.forEach(o => {
+      if (!spStats[o.salesperson]) {
+        spStats[o.salesperson] = { total: 0, completed: 0, inProgress: 0, amount: 0 };
+      }
+      spStats[o.salesperson].total++;
+      spStats[o.salesperson].amount += o.contractAmount || 0;
+      if (Store.getOrderPhase(o) === '\u5df2\u5b8c\u6210') {
+        spStats[o.salesperson].completed++;
+      } else {
+        spStats[o.salesperson].inProgress++;
+      }
+    });
+
+    const spTbody = $('#report-sp-tbody');
+    spTbody.innerHTML = Object.entries(spStats).map(([name, s]) => `
+      <tr>
+        <td data-label="\u9500\u552e\u5458"><strong>${escapeHtml(name)}</strong></td>
+        <td data-label="\u8ba2\u5355\u603b\u6570">${s.total}</td>
+        <td data-label="\u5df2\u5b8c\u6210"><span class="tag tag-green">${s.completed}</span></td>
+        <td data-label="\u8fdb\u884c\u4e2d"><span class="tag tag-blue">${s.inProgress}</span></td>
+        <td data-label="\u5408\u540c\u91d1\u989d" style="text-align:right">${fmtMoney(s.amount)}</td>
+      </tr>
+    `).join('');
+
+    // 按阶段统计
+    const phaseStats = { '\u524d\u671f\u8bc4\u5ba1\u73af\u8282': 0, '\u4e0b\u5355\u73af\u8282': 0, '\u53d1\u8d27\u73af\u8282': 0, '\u5df2\u5b8c\u6210': 0 };
+    orders.forEach(o => {
+      const ph = Store.getOrderPhase(o);
+      phaseStats[ph] = (phaseStats[ph] || 0) + 1;
+    });
+
+    // 柱状图
+    const chartEl = $('#report-chart');
+    const colors = { '\u524d\u671f\u8bc4\u5ba1\u73af\u8282': '#3b82f6', '\u4e0b\u5355\u73af\u8282': '#8b5cf6', '\u53d1\u8d27\u73af\u8282': '#10b981', '\u5df2\u5b8c\u6210': '#f59e0b' };
+    const maxVal = Math.max(...Object.values(phaseStats), 1);
+    chartEl.innerHTML = Object.entries(phaseStats).map(([name, count]) => {
+      const height = (count / maxVal) * 100;
+      return `
+        <div class="chart-bar-group">
+          <div class="chart-bar" style="height:${height}%;background:${colors[name]}">
+            <span class="chart-bar-value">${count}</span>
+          </div>
+          <span class="chart-bar-label">${name.length > 4 ? name.slice(0, 4) + '...' : name}</span>
+        </div>
+      `;
+    }).join('');
+
+    // 近6个月趋势
+    const trendEl = $('#report-trend');
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(year, month - 1 - i, 1);
+      months.push({
+        label: `${d.getMonth() + 1}\u6708`,
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      });
+    }
+    const trendData = months.map(m => {
+      const cnt = orders.filter(o => o.createdAt && o.createdAt.startsWith(m.key)).length;
+      return { ...m, count: cnt };
+    });
+    const maxTrend = Math.max(...trendData.map(t => t.count), 1);
+    trendEl.innerHTML = trendData.map(t => {
+      const h = (t.count / maxTrend) * 100;
+      return `
+        <div class="chart-bar-group">
+          <div class="chart-bar" style="height:${h}%;background:#2563eb">
+            <span class="chart-bar-value">${t.count}</span>
+          </div>
+          <span class="chart-bar-label">${t.label}</span>
+        </div>
+      `;
+    }).join('');
+
+    // 生成文字总结
+    const summary = `${year}\u5e74${month}\u6708\u5de5\u4f5c\u603b\u7ed3\uff1a\u672c\u6708\u65b0\u589e\u8ba2\u5355 ${monthOrderCount} \u4e2a\uff0c\u5408\u540c\u91d1\u989d ${fmtMoney(monthAmount)}\uff1b\u7d2f\u8ba1\u8ba2\u5355 ${totalOrders} \u4e2a\uff0c\u5df2\u5b8c\u6210 ${completedOrders} \u4e2a\uff0c\u8fdb\u884c\u4e2d ${inProgress} \u4e2a\uff1b\u672c\u6708\u4efb\u52a1\u5b8c\u6210\u7387 ${taskRate}%\uff08${monthTaskDone}/${monthTaskTotal}\uff09\u3002`;
+    $('#report-summary').textContent = summary;
+  }
+
+  // ========== 辅助函数 ==========
+  function priorityLabel(p) {
+    return { high: '\u9ad8\u4f18\u5148', medium: '\u4e2d\u4f18\u5148', low: '\u4f4e\u4f18\u5148' }[p] || p;
+  }
+
+  function priorityTag(p) {
+    return { high: 'tag-red', medium: 'tag-orange', low: 'tag-gray' }[p] || 'tag-gray';
+  }
+
+  function phaseTag(phase) {
+    const map = {
+      '\u524d\u671f\u8bc4\u5ba1\u73af\u8282': 'tag-blue',
+      '\u4e0b\u5355\u73af\u8282': 'tag-purple',
+      '\u53d1\u8d27\u73af\u8282': 'tag-green',
+      '\u5df2\u5b8c\u6210': 'tag-gray'
+    };
+    return map[phase] || 'tag-gray';
+  }
+
+  function phaseShort(phase) {
+    const map = {
+      '\u524d\u671f\u8bc4\u5ba1\u73af\u8282': '\u524d\u671f\u8bc4\u5ba1',
+      '\u4e0b\u5355\u73af\u8282': '\u4e0b\u5355\u4e2d',
+      '\u53d1\u8d27\u73af\u8282': '\u53d1\u8d27\u4e2d',
+      '\u5df2\u5b8c\u6210': '\u5df2\u5b8c\u6210'
+    };
+    return map[phase] || phase;
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str);
+  }
+
+  function updateBadges() {
+    const todayTasks = Store.getTasksByDate(todayStr());
+    const pending = todayTasks.filter(t => !t.completed).length;
+    const badge = $('#nav-task-badge');
+    if (badge) {
+      badge.textContent = pending;
+      badge.style.display = pending > 0 ? '' : 'none';
+    }
+  }
+
+  // ========== 初始化 ==========
+  function init() {
+    Store.init();
+
+    // 导航绑定
+    $$('.nav-item[data-page]').forEach(item => {
+      item.addEventListener('click', () => navigate(item.dataset.page));
+    });
+
+    // 顶栏日期
+    $('#topbar-date').textContent = todayDisplay();
+
+    // 任务页日期切换
+    $('#task-date-input').addEventListener('change', (e) => {
+      taskFilterDate = e.target.value;
+      renderTasks();
+    });
+
+    // 订单筛选
+    $('#order-filter-sp').addEventListener('change', (e) => {
+      orderFilter.salesperson = e.target.value;
+      renderOrders();
+    });
+    $('#order-filter-phase').addEventListener('change', (e) => {
+      orderFilter.phase = e.target.value;
+      renderOrders();
+    });
+    $('#order-search').addEventListener('input', (e) => {
+      orderFilter.keyword = e.target.value;
+      renderOrders();
+    });
+
+    // 模态框关闭
+    $$('.modal-close, .modal-overlay').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target === el) {
+          el.closest('.modal-overlay').classList.remove('show');
+        }
+      });
+    });
+
+    // 按钮绑定
+    $('#btn-add-task').addEventListener('click', openTaskModal);
+    $('#btn-save-task').addEventListener('click', saveTask);
+    $('#btn-add-order').addEventListener('click', openOrderModal);
+    $('#btn-save-order').addEventListener('click', saveOrder);
+    $('#btn-edit-order').addEventListener('click', editOrder);
+    $('#btn-delete-order').addEventListener('click', deleteOrder);
+    $('#btn-back-orders').addEventListener('click', backToOrders);
+    $('#btn-save-step').addEventListener('click', saveStep);
+    $('#btn-generate-report').addEventListener('click', renderReport);
+
+    // 重置数据
+    $('#btn-reset-data').addEventListener('click', () => {
+      if (confirm('\u786e\u8ba4\u91cd\u7f6e\u6240\u6709\u6570\u636e\uff1f\u8fd9\u5c06\u6e05\u9664\u6240\u6709\u81ea\u5b9a\u4e49\u6570\u636e\u5e76\u6062\u590d\u793a\u4f8b\u6570\u636e\u3002')) {
+        Store.resetAll();
+        showToast('\u6570\u636e\u5df2\u91cd\u7f6e', 'success');
+        navigate('dashboard');
+      }
+    });
+
+    // 默认显示首页
+    navigate('dashboard');
+  }
+
+  // ========== 暴露API ==========
+  window.App = {
+    toggleTask,
+    viewOrder,
+    openStepModal,
+    saveStep,
+    revertStep,
+    editTask,
+    deleteTask,
+    openOrderModal,
+    editOrder,
+    deleteOrder,
+    backToOrders,
+  };
+
+  // DOM Ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+</script>
+</body>
+</html>
