@@ -235,24 +235,24 @@ const Store = {
     }
   },
 
-  // 合并云端数据（保留本地独有的、云端独有的数据）
+  // 合并云端数据（云端优先，确保多设备数据一致）
   _mergeCloudData(cloudOrders, cloudTasks) {
     const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || '[]');
     const localTasks = JSON.parse(localStorage.getItem(STORAGE_KEYS.tasks) || '[]');
 
-    // 合并订单：按 ID 去重，本地优先（本地的修改可能还未同步到云端）
-    const cloudOnlyOrders = cloudOrders.filter(co => !localOrders.some(lo => lo.id === co.id));
-    const mergedOrders = [...localOrders, ...cloudOnlyOrders];
+    // 合并订单：云端优先覆盖本地同 ID 数据，本地独有的上传到云端
+    const cloudOrderIds = new Set(cloudOrders.map(co => co.id));
+    const localOnlyOrders = localOrders.filter(lo => !cloudOrderIds.has(lo.id));
+    const mergedOrders = [...cloudOrders, ...localOnlyOrders];
     localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(mergedOrders));
 
-    // 合并任务
-    const cloudOnlyTasks = cloudTasks.filter(ct => !localTasks.some(lt => lt.id === ct.id));
-    const mergedTasks = [...localTasks, ...cloudOnlyTasks];
+    // 合并任务：同理，云端优先
+    const cloudTaskIds = new Set(cloudTasks.map(ct => ct.id));
+    const localOnlyTasks = localTasks.filter(lt => !cloudTaskIds.has(lt.id));
+    const mergedTasks = [...cloudTasks, ...localOnlyTasks];
     localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(mergedTasks));
 
     // 上传本地独有的到云端
-    const localOnlyOrders = localOrders.filter(lo => !cloudOrders.some(co => co.id === lo.id));
-    const localOnlyTasks = localTasks.filter(lt => !cloudTasks.some(ct => ct.id === lt.id));
     if (localOnlyOrders.length > 0 || localOnlyTasks.length > 0) {
       if (typeof Cloud !== 'undefined') {
         localOnlyOrders.forEach(o => Cloud.upsertOrder(o));
