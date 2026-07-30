@@ -25,8 +25,8 @@ const WORKFLOW = {
       color: '#8b5cf6',
       steps: [
         { key: 'make_production_order', name: '制作生产订单', required: true, desc: '制作生产订单文件' },
-        { key: 'order_meeting', name: '召开新订单沟通会', required: true, desc: '组织召开新订单沟通会议' },
-        { key: 'send_minutes', name: '发送纪要（邮件）', required: true, desc: '会议结束后发送会议纪要邮件' },
+        { key: 'order_meeting', name: '召开新订单沟通会', required: false, desc: '组织召开新订单沟通会议' },
+        { key: 'send_minutes', name: '发送纪要（邮件）', required: false, desc: '会议结束后发送会议纪要邮件' },
         { key: 'place_order', name: '取订单号下单', required: true, desc: '找技术部签名后发下单通知邮件' },
         { key: 'u8_add_inventory', name: 'U8系统新增存货', required: true, desc: '在U8系统中新增存货档案' },
         { key: 'u8_add_sales_order', name: 'U8系统新增销售订单', required: true, desc: '存货审核通过后在U8新增销售订单' },
@@ -66,6 +66,7 @@ const SAMPLE_ORDERS = [
     proposalNumber: 'FA202607001',
     contractAmount: 580000,
     createdAt: '2026-06-15',
+    status: 'active',
     remark: '重点项目，需加快进度',
     steps: {
       'project_init': { status: 'completed', date: '2026-06-15', note: '方案号FA202607001' },
@@ -97,6 +98,7 @@ const SAMPLE_ORDERS = [
     proposalNumber: 'FA202607002',
     contractAmount: 1200000,
     createdAt: '2026-07-01',
+    status: 'active',
     remark: '',
     steps: {
       'project_init': { status: 'completed', date: '2026-07-01', note: '' },
@@ -128,6 +130,7 @@ const SAMPLE_ORDERS = [
     proposalNumber: 'FA202607003',
     contractAmount: 850000,
     createdAt: '2026-07-10',
+    status: 'active',
     remark: '客户催促尽快发货',
     steps: {
       'project_init': { status: 'completed', date: '2026-07-10', note: '' },
@@ -159,6 +162,7 @@ const SAMPLE_ORDERS = [
     proposalNumber: 'FA202606018',
     contractAmount: 430000,
     createdAt: '2026-06-05',
+    status: 'completed',
     remark: '已全部完成',
     steps: {
       'project_init': { status: 'completed', date: '2026-06-05', note: '' },
@@ -199,8 +203,14 @@ const STORAGE_KEYS = {
 };
 
 const Store = {
-  // 初始化
-  init() {
+  // 初始化（异步，支持云端同步）
+  async init() {
+    // 初始化云端客户端
+    if (typeof Cloud !== 'undefined') {
+      Cloud.initClient();
+    }
+
+    // 确保本地有数据（兜底，先于云端同步执行）
     if (!localStorage.getItem(STORAGE_KEYS.orders)) {
       localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
     }
@@ -210,6 +220,45 @@ const Store = {
     if (!localStorage.getItem(STORAGE_KEYS.meta)) {
       localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
     }
+
+    // 如果云端已配置，进行合并同步（不覆盖本地数据）
+    if (typeof Cloud !== 'undefined' && Cloud.configured) {
+      const result = await Cloud.initialSync();
+      if (result.synced) {
+        if (result.direction === 'download') {
+          // 云端有数据：按 ID 合并，云端和本地都不丢
+          this._mergeCloudData(result.orders || [], result.tasks || []);
+        }
+        // direction === 'upload': 本地数据已上传到云端，无需额外操作
+        // direction === 'error': 同步失败，使用本地数据，无需操作
+      }
+    }
+  },
+
+  // 合并云端数据（保留本地独有的、云端独有的数据）
+  _mergeCloudData(cloudOrders, cloudTasks) {
+    const localOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.orders) || '[]');
+    const localTasks = JSON.parse(localStorage.getItem(STORAGE_KEYS.tasks) || '[]');
+
+    // 合并订单：按 ID 去重，本地优先（本地的修改可能还未同步到云端）
+    const cloudOnlyOrders = cloudOrders.filter(co => !localOrders.some(lo => lo.id === co.id));
+    const mergedOrders = [...localOrders, ...cloudOnlyOrders];
+    localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(mergedOrders));
+
+    // 合并任务
+    const cloudOnlyTasks = cloudTasks.filter(ct => !localTasks.some(lt => lt.id === ct.id));
+    const mergedTasks = [...localTasks, ...cloudOnlyTasks];
+    localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(mergedTasks));
+
+    // 上传本地独有的到云端
+    const localOnlyOrders = localOrders.filter(lo => !cloudOrders.some(co => co.id === lo.id));
+    const localOnlyTasks = localTasks.filter(lt => !cloudTasks.some(ct => ct.id === lt.id));
+    if (localOnlyOrders.length > 0 || localOnlyTasks.length > 0) {
+      if (typeof Cloud !== 'undefined') {
+        localOnlyOrders.forEach(o => Cloud.upsertOrder(o));
+        localOnlyTasks.forEach(t => Cloud.upsertTask(t));
+      }
+    }
   },
 
   // 重置数据
@@ -217,6 +266,11 @@ const Store = {
     localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
     localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(SAMPLE_TASKS));
     localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
+    // 同步到云端
+    if (typeof Cloud !== 'undefined' && Cloud.configured) {
+      SAMPLE_ORDERS.forEach(o => Cloud.upsertOrder(o));
+      SAMPLE_TASKS.forEach(t => Cloud.upsertTask(t));
+    }
   },
 
   // ========== 订单 ==========
@@ -236,6 +290,7 @@ const Store = {
     const orders = this.getOrders();
     order.id = 'ord_' + Date.now();
     order.createdAt = new Date().toISOString().split('T')[0];
+    order.status = order.status || 'active';
     // 初始化所有步骤
     order.steps = {};
     ALL_STEPS.forEach(s => {
@@ -245,6 +300,7 @@ const Store = {
     order.steps[ALL_STEPS[0].key] = { status: 'current', date: '', note: '' };
     orders.unshift(order);
     this.saveOrders(orders);
+    if (typeof Cloud !== 'undefined') Cloud.upsertOrder(order);
     return order;
   },
 
@@ -254,6 +310,7 @@ const Store = {
     if (idx >= 0) {
       orders[idx] = { ...orders[idx], ...updates };
       this.saveOrders(orders);
+      if (typeof Cloud !== 'undefined') Cloud.upsertOrder(orders[idx]);
       return orders[idx];
     }
     return null;
@@ -262,6 +319,23 @@ const Store = {
   deleteOrder(id) {
     const orders = this.getOrders().filter(o => o.id !== id);
     this.saveOrders(orders);
+    if (typeof Cloud !== 'undefined') Cloud.deleteOrder(id);
+  },
+
+  archiveOrder(id) {
+    return this.updateOrder(id, { status: 'completed' });
+  },
+
+  restoreOrder(id) {
+    return this.updateOrder(id, { status: 'active' });
+  },
+
+  getActiveOrders() {
+    return this.getOrders().filter(o => (o.status || 'active') === 'active');
+  },
+
+  getCompletedOrders() {
+    return this.getOrders().filter(o => o.status === 'completed');
   },
 
   updateStep(orderId, stepKey, status, date, note) {
@@ -282,6 +356,7 @@ const Store = {
         }
       }
       this.saveOrders(orders);
+      if (typeof Cloud !== 'undefined') Cloud.upsertOrder(order);
     }
   },
 
@@ -299,9 +374,12 @@ const Store = {
 
   // 获取订单进度百分比
   getOrderProgress(order) {
-    const requiredSteps = ALL_STEPS.filter(s => s.required);
-    const completed = requiredSteps.filter(s => order.steps[s.key].status === 'completed').length;
-    return Math.round((completed / requiredSteps.length) * 100);
+    // 所有步骤都参与进度计算，skipped（不需要）等同于完成
+    const completed = ALL_STEPS.filter(s => {
+      var st = order.steps[s.key];
+      return st.status === 'completed' || st.status === 'skipped';
+    }).length;
+    return Math.round((completed / ALL_STEPS.length) * 100);
   },
 
   // 获取销售员列表
@@ -324,6 +402,7 @@ const Store = {
     task.id = 'task_' + Date.now();
     tasks.unshift(task);
     localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+    if (typeof Cloud !== 'undefined') Cloud.upsertTask(task);
     return task;
   },
 
@@ -333,6 +412,7 @@ const Store = {
     if (idx >= 0) {
       tasks[idx] = { ...tasks[idx], ...updates };
       localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+      if (typeof Cloud !== 'undefined') Cloud.upsertTask(tasks[idx]);
       return tasks[idx];
     }
     return null;
@@ -341,6 +421,7 @@ const Store = {
   deleteTask(id) {
     const tasks = this.getTasks().filter(t => t.id !== id);
     localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+    if (typeof Cloud !== 'undefined') Cloud.deleteTask(id);
   },
 
   toggleTask(id) {
@@ -349,6 +430,7 @@ const Store = {
     if (task) {
       task.completed = !task.completed;
       localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+      if (typeof Cloud !== 'undefined') Cloud.upsertTask(task);
     }
   },
 };

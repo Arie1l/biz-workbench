@@ -48,8 +48,12 @@
         <span>重置示例数据</span>
       </div>
     </nav>
-    <div class="sidebar-footer">
-      数据存储于本地浏览器
+    <div class="sidebar-footer" id="cloud-status-footer">
+      <div class="cloud-status" id="cloud-status">
+        <span class="cloud-dot local"></span>
+        <span class="cloud-text">本地存储</span>
+      </div>
+      <button class="btn-cloud-settings" id="btn-cloud-settings">云端同步设置</button>
     </div>
   </aside>
 
@@ -149,8 +153,12 @@
             </div>
             <button class="btn btn-primary" id="btn-add-order">+ 新增订单</button>
           </div>
-          <div class="card-body" style="padding-bottom:0">
-            <div class="filter-bar">
+    <div class="card-body" style="padding-bottom:0">
+      <div class="status-tabs" id="order-status-tabs">
+        <button class="status-tab active" data-status="active">进行中</button>
+        <button class="status-tab" data-status="completed">已完成（历史）</button>
+      </div>
+      <div class="filter-bar">
               <div class="search-box">
                 <span class="search-icon">🔍</span>
                 <input type="text" id="order-search" placeholder="搜索订单号 / 项目名 / 客户名">
@@ -177,6 +185,7 @@
                   <th>销售员</th>
                   <th>当前阶段</th>
                   <th>进度</th>
+                  <th>状态</th>
                   <th style="text-align:right">合同金额</th>
                 </tr>
               </thead>
@@ -191,6 +200,8 @@
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
           <button class="btn btn-secondary" id="btn-back-orders">← 返回列表</button>
           <button class="btn btn-secondary" id="btn-edit-order">✎ 编辑订单</button>
+          <button class="btn btn-secondary" id="btn-archive-order" style="color:var(--success)">📦 归档为已完成</button>
+          <button class="btn btn-secondary" id="btn-restore-order" style="color:var(--purple);display:none">🔄 恢复为进行中</button>
           <button class="btn btn-danger" id="btn-delete-order">🗑 删除</button>
         </div>
 
@@ -261,6 +272,7 @@
                 <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
               </select>
               <button class="btn btn-primary" id="btn-generate-report">生成月报</button>
+              <button class="btn btn-secondary" id="btn-export-excel" style="display:none">📥 导出Excel</button>
             </div>
           </div>
           <div class="card-body">
@@ -426,6 +438,15 @@
           <input type="number" class="form-input" id="order-amount" placeholder="如 580000">
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">订单状态</label>
+          <select class="form-select" id="order-status">
+            <option value="active">进行中</option>
+            <option value="completed">已完成（历史订单）</option>
+          </select>
+        </div>
+      </div>
       <div class="form-group">
         <label class="form-label">备注</label>
         <textarea class="form-textarea" id="order-remark" placeholder="备注信息..."></textarea>
@@ -489,7 +510,84 @@
   </div>
 </div>
 
-<script src="js/store.js"></script>
-<script src="js/app.js"></script>
+<!-- ========== 加载遮罩 ========== -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">正在同步云端数据...</div>
+</div>
+
+<!-- ========== 模态框: 云端同步设置 ========== -->
+<div class="modal-overlay" id="cloud-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">云端同步设置</div>
+      <button class="modal-close" onclick="document.getElementById('cloud-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cloud-guide">
+        <div class="cloud-guide-title">配置步骤（免费，约3分钟）</div>
+        <div class="cloud-guide-step">
+          <span class="step-num">1</span>
+          <div>
+            打开 <a href="https://supabase.com" target="_blank" class="cloud-link">supabase.com</a>，用 GitHub 账号登录（点 Sign in → Continue with GitHub）
+          </div>
+        </div>
+        <div class="cloud-guide-step">
+          <span class="step-num">2</span>
+          <div>登录后点 <strong>New Project</strong>，名字随便填（如 my-workbench），密码自动生成不用管，地区选 <strong>Singapore</strong>，点 Create</div>
+        </div>
+        <div class="cloud-guide-step">
+          <span class="step-num">3</span>
+          <div>等项目建好后（约1-2分钟），点左侧 <strong>SQL Editor</strong> → New query，把下面的 SQL 复制粘贴进去，点 Run</div>
+        </div>
+        <div class="cloud-sql-box" id="cloud-sql-box">CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  order_number TEXT, project_name TEXT, customer TEXT,
+  salesperson TEXT, proposal_number TEXT DEFAULT '',
+  contract_amount NUMERIC DEFAULT 0, created_at TEXT DEFAULT '',
+  status TEXT DEFAULT 'active',
+  remark TEXT DEFAULT '', steps JSONB DEFAULT '{}'::jsonb
+);
+CREATE TABLE IF NOT EXISTS tasks (
+  id TEXT PRIMARY KEY, title TEXT, description TEXT DEFAULT '',
+  date TEXT, priority TEXT DEFAULT 'medium',
+  completed BOOLEAN DEFAULT FALSE,
+  related_order TEXT DEFAULT '', salesperson TEXT DEFAULT ''
+);
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "all_orders" ON orders FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "all_tasks" ON tasks FOR ALL TO anon USING (true) WITH CHECK (true);</div>
+        <button class="btn btn-sm btn-secondary" id="btn-copy-sql" style="margin-top:8px">复制 SQL</button>
+        <div class="cloud-guide-step" style="margin-top:16px">
+          <span class="step-num">4</span>
+          <div>点左侧 <strong>Project Settings</strong>（齿轮图标）→ <strong>API</strong>，找到 <strong>Project URL</strong> 和 <strong>anon public key</strong>，复制后填到下面</div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:20px">
+        <label class="form-label">Project URL</label>
+        <input type="text" class="form-input" id="supabase-url" placeholder="https://xxxxx.supabase.co">
+      </div>
+      <div class="form-group">
+        <label class="form-label">anon public key</label>
+        <textarea class="form-textarea" id="supabase-key" placeholder="eyJhbGciOi..." style="font-size:12px;min-height:60px"></textarea>
+      </div>
+
+      <div class="cloud-test-result" id="cloud-test-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-cloud-disconnect" style="margin-right:auto;display:none">断开连接</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('cloud-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-cloud-connect">连接并同步</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/cloud.js?v=4"></script>
+<script src="js/store.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>
