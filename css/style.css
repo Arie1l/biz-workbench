@@ -2,9 +2,9 @@
 :root {
   --sidebar-width: 220px;
   --header-height: 56px;
-  --primary: #2563eb;
-  --primary-light: #dbeafe;
-  --primary-dark: #1d4ed8;
+  --primary: #7c3aed;
+  --primary-light: #f5f3ff;
+  --primary-dark: #6d28d9;
   --success: #10b981;
   --success-light: #d1fae5;
   --warning: #f59e0b;
@@ -57,17 +57,18 @@ body {
 /* ========== 侧边栏 ========== */
 .sidebar {
   width: var(--sidebar-width);
-  background: var(--gray-900);
-  color: var(--gray-300);
+  background: #fff;
+  color: var(--gray-600);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   transition: var(--transition);
+  border-right: 1px solid var(--gray-200);
 }
 
 .sidebar-header {
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid var(--gray-200);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -76,7 +77,7 @@ body {
 .sidebar-header .logo {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--primary), var(--purple));
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -88,7 +89,7 @@ body {
 .sidebar-header .title {
   font-size: 15px;
   font-weight: 600;
-  color: #fff;
+  color: var(--gray-800);
   white-space: nowrap;
 }
 
@@ -110,7 +111,7 @@ body {
   padding: 10px 14px;
   border-radius: var(--radius);
   cursor: pointer;
-  color: var(--gray-400);
+  color: var(--gray-500);
   font-size: 13.5px;
   font-weight: 500;
   transition: var(--transition);
@@ -119,8 +120,8 @@ body {
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.06);
-  color: #fff;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .nav-item.active {
@@ -150,16 +151,16 @@ body {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--gray-600);
+  color: var(--gray-400);
   padding: 16px 14px 6px;
   font-weight: 600;
 }
 
 .sidebar-footer {
   padding: 12px 16px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--gray-200);
   font-size: 11px;
-  color: var(--gray-600);
+  color: var(--gray-500);
 }
 
 /* ========== 主内容区 ========== */
@@ -401,7 +402,7 @@ body {
 .form-textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
 }
 
 .form-textarea {
@@ -709,7 +710,7 @@ table.data-table tbody tr:last-child td {
 .step-item.current::before {
   background: var(--primary);
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.15);
 }
 
 .step-item.skipped::before {
@@ -752,6 +753,37 @@ table.data-table tbody tr:last-child td {
   margin-left: 6px;
 }
 
+/* ========== 状态标签页 ========== */
+.status-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.status-tab {
+  padding: 8px 20px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--gray-500);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.status-tab:hover {
+  color: var(--primary);
+}
+
+.status-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
 /* ========== 筛选栏 ========== */
 .filter-bar {
   display: flex;
@@ -785,7 +817,7 @@ table.data-table tbody tr:last-child td {
 .search-box input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
 }
 
 .search-box .search-icon {
@@ -1171,4 +1203,179 @@ empty-state, .empty-state {
   .report-stat-row {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* ========== 云端状态 ========== */
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.cloud-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.cloud-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cloud-dot.local { background: var(--gray-400); }
+.cloud-dot.connected { background: var(--success); box-shadow: 0 0 4px var(--success); }
+.cloud-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
+.cloud-dot.error { background: var(--danger); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.btn-cloud-settings {
+  background: none;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-500);
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cloud-settings:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ========== 加载遮罩 ========== */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.85);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--gray-200);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+/* ========== 云端设置弹窗 ========== */
+.cloud-guide {
+  background: var(--gray-50);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.cloud-guide-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 12px;
+}
+
+.cloud-guide-step {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gray-600);
+}
+
+.cloud-guide-step .step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cloud-link {
+  color: var(--primary);
+  text-decoration: none;
+}
+.cloud-link:hover {
+  text-decoration: underline;
+}
+
+.cloud-sql-box {
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre;
+  overflow-x: auto;
+  margin-top: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cloud-test-result {
+  margin-top: 12px;
+}
+
+.cloud-test-success {
+  background: var(--success-light);
+  color: var(--success);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.cloud-test-fail {
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.cloud-test-loading {
+  background: var(--warning-light);
+  color: var(--warning);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.cloud-test-info {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
 }
