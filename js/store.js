@@ -440,21 +440,25 @@ const Store = {
     const tasks = this.getTasks();
     const today = new Date().toISOString().split('T')[0];
     let carriedCount = 0;
+    let needSave = false;
 
     for (let i = 0; i < tasks.length; i++) {
       var t = tasks[i];
+
+      // 给所有没有 createdAt 的历史任务补上
+      if (!t.createdAt && t.date) {
+        t.createdAt = t.date;
+        needSave = true;
+      }
+
       if (!t.completed && t.date && t.date < today) {
-        // 保存原始创建日期（如果还没有的话）
-        if (!t.createdAt) {
-          t.createdAt = t.date;
-        }
         t.date = today;
         carriedCount++;
         if (typeof Cloud !== 'undefined') Cloud.upsertTask(t);
       }
     }
 
-    if (carriedCount > 0) {
+    if (carriedCount > 0 || needSave) {
       localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
     }
     return carriedCount;
