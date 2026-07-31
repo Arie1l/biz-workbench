@@ -562,20 +562,21 @@
 
   function toggleTask(id) {
     Store.toggleTask(id);
-    // 自动同步：任务完成时更新关联订单的对应步骤
+    // 自动同步：任务完成时更新关联订单的对应步骤（支持一个任务匹配多个步骤）
     var tasks = Store.getTasks();
     var task = tasks.find(function(t) { return t.id === id; });
-    var synced = null;
+    var results = null;
     if (task && task.completed && task.relatedOrder) {
-      synced = Store.syncTaskToOrderStep(task);
-      if (synced) {
-        showToast('已同步「' + synced.orderNumber + '」→ ' + synced.stepName, 'success');
+      results = Store.syncTaskToOrderStep(task);
+      if (results && results.length > 0) {
+        var stepNames = results.map(function(r) { return r.stepName; }).join('、');
+        showToast('已同步「' + results[0].orderNumber + '」→ ' + stepNames, 'success');
       }
     }
     renderTasks();
     if (currentPage === 'dashboard') renderDashboard();
     // 如果正在查看该订单详情，刷新视图
-    if (synced && currentOrderId === synced.orderId) {
+    if (results && results.length > 0 && currentOrderId === results[0].orderId) {
       viewOrder(currentOrderId);
     }
   }
