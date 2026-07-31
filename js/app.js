@@ -109,8 +109,9 @@
         if (t.description) rows.push('<div class="task-desc">' + escapeHtml(t.description) + '</div>');
         rows.push('<div class="task-meta">');
         rows.push('<span class="tag ' + priorityTag(t.priority) + '">' + priorityLabel(t.priority) + '</span>');
-        if (t.createdAt && t.createdAt !== t.date) {
-          rows.push('<span class="tag tag-orange">📅 ' + fmtDateShort(t.createdAt) + '创建</span>');
+        if (t.createdAt) {
+          var isCarried = t.createdAt !== t.date;
+          rows.push('<span class="tag ' + (isCarried ? 'tag-orange' : 'tag-gray') + '">📅 ' + fmtDateShort(t.createdAt) + '创建' + (isCarried ? '（顺延）' : '') + '</span>');
         }
         if (t.relatedOrder) rows.push('<span class="tag tag-gray">关联订单</span>');
         rows.push('</div></div></div>');
@@ -184,8 +185,9 @@
     if (t.description) rows.push('<div class="task-desc">' + escapeHtml(t.description) + '</div>');
     rows.push('<div class="task-meta">');
     rows.push('<span class="tag ' + priorityTag(t.priority) + '">' + priorityLabel(t.priority) + '</span>');
-    if (t.createdAt && t.createdAt !== t.date) {
-      rows.push('<span class="tag tag-orange">📅 ' + fmtDateShort(t.createdAt) + '创建</span>');
+    if (t.createdAt) {
+      var isCarried = t.createdAt !== t.date;
+      rows.push('<span class="tag ' + (isCarried ? 'tag-orange' : 'tag-gray') + '">📅 ' + fmtDateShort(t.createdAt) + '创建' + (isCarried ? '（顺延）' : '') + '</span>');
     }
     if (t.salesperson) rows.push('<span class="tag tag-purple">👤 ' + escapeHtml(t.salesperson) + '</span>');
     if (order) rows.push('<span class="tag tag-blue" style="cursor:pointer" onclick="App.viewOrder(\'' + order.id + '\');event.stopPropagation()">' + order.orderNumber + '</span>');
