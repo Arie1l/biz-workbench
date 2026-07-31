@@ -17,6 +17,13 @@
     return d;
   }
 
+  function fmtDateShort(d) {
+    if (!d) return '';
+    var parts = d.split('-');
+    if (parts.length !== 3) return d;
+    return parseInt(parts[1]) + '月' + parseInt(parts[2]) + '日';
+  }
+
   function todayStr() {
     const d = new Date();
     const y = d.getFullYear();
@@ -102,6 +109,9 @@
         if (t.description) rows.push('<div class="task-desc">' + escapeHtml(t.description) + '</div>');
         rows.push('<div class="task-meta">');
         rows.push('<span class="tag ' + priorityTag(t.priority) + '">' + priorityLabel(t.priority) + '</span>');
+        if (t.createdAt && t.createdAt !== t.date) {
+          rows.push('<span class="tag tag-orange">📅 ' + fmtDateShort(t.createdAt) + '创建</span>');
+        }
         if (t.relatedOrder) rows.push('<span class="tag tag-gray">关联订单</span>');
         rows.push('</div></div></div>');
         return rows.join('');
@@ -174,6 +184,9 @@
     if (t.description) rows.push('<div class="task-desc">' + escapeHtml(t.description) + '</div>');
     rows.push('<div class="task-meta">');
     rows.push('<span class="tag ' + priorityTag(t.priority) + '">' + priorityLabel(t.priority) + '</span>');
+    if (t.createdAt && t.createdAt !== t.date) {
+      rows.push('<span class="tag tag-orange">📅 ' + fmtDateShort(t.createdAt) + '创建</span>');
+    }
     if (t.salesperson) rows.push('<span class="tag tag-purple">👤 ' + escapeHtml(t.salesperson) + '</span>');
     if (order) rows.push('<span class="tag tag-blue" style="cursor:pointer" onclick="App.viewOrder(\'' + order.id + '\');event.stopPropagation()">' + order.orderNumber + '</span>');
     rows.push('</div></div>');
@@ -1132,7 +1145,12 @@
     });
 
     // 默认显示首页
+    // 顺延前一天未完成任务到今天
+    var carriedCount = Store.carryOverPendingTasks();
     navigate('dashboard');
+    if (carriedCount > 0) {
+      showToast(carriedCount + '条未完成任务已自动顺延到今天', 'success');
+    }
   }
 
   // ========== 暴露API ==========
