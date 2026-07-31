@@ -400,6 +400,7 @@ const Store = {
   addTask(task) {
     const tasks = this.getTasks();
     task.id = 'task_' + Date.now();
+    task.createdAt = task.date; // 记录原始创建日期，用于顺延标注
     tasks.unshift(task);
     localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
     if (typeof Cloud !== 'undefined') Cloud.upsertTask(task);
@@ -432,6 +433,31 @@ const Store = {
       localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
       if (typeof Cloud !== 'undefined') Cloud.upsertTask(task);
     }
+  },
+
+  // 前一天未完成的任务自动顺延到今天，直到完成为止
+  carryOverPendingTasks() {
+    const tasks = this.getTasks();
+    const today = new Date().toISOString().split('T')[0];
+    let carriedCount = 0;
+
+    for (let i = 0; i < tasks.length; i++) {
+      var t = tasks[i];
+      if (!t.completed && t.date && t.date < today) {
+        // 保存原始创建日期（如果还没有的话）
+        if (!t.createdAt) {
+          t.createdAt = t.date;
+        }
+        t.date = today;
+        carriedCount++;
+        if (typeof Cloud !== 'undefined') Cloud.upsertTask(t);
+      }
+    }
+
+    if (carriedCount > 0) {
+      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+    }
+    return carriedCount;
   },
 
   // 任务完成时自动同步到关联订单的对应步骤（支持一个任务匹配多个步骤）
