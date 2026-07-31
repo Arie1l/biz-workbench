@@ -434,32 +434,38 @@ const Store = {
     }
   },
 
-  // 任务完成时自动同步到关联订单的对应步骤
+  // 任务完成时自动同步到关联订单的对应步骤（支持一个任务匹配多个步骤）
   syncTaskToOrderStep(task) {
     if (!task.relatedOrder || !task.completed) return null;
 
-    var stepKey = this._matchStepFromTitle(task.title);
-    if (!stepKey) return null;
+    var stepKeys = this._matchStepFromTitle(task.title);
+    if (!stepKeys || stepKeys.length === 0) return null;
 
     var order = this.getOrder(task.relatedOrder);
     if (!order) return null;
 
-    // 如果步骤已经是完成或跳过状态，不重复更新
-    var currentStatus = order.steps[stepKey] ? order.steps[stepKey].status : 'pending';
-    if (currentStatus === 'completed' || currentStatus === 'skipped') return null;
-
     var today = new Date().toISOString().split('T')[0];
-    var step = STEP_MAP[stepKey];
-    this.updateStep(order.id, stepKey, 'completed', today, '任务完成自动同步');
+    var results = [];
 
-    return { stepName: step.name, orderNumber: order.orderNumber, orderId: order.id };
+    for (var i = 0; i < stepKeys.length; i++) {
+      var stepKey = stepKeys[i];
+      // 如果步骤已经是完成或跳过状态，不重复更新
+      var currentStatus = order.steps[stepKey] ? order.steps[stepKey].status : 'pending';
+      if (currentStatus === 'completed' || currentStatus === 'skipped') continue;
+
+      var step = STEP_MAP[stepKey];
+      this.updateStep(order.id, stepKey, 'completed', today, '任务完成自动同步');
+      results.push({ stepName: step.name, orderNumber: order.orderNumber, orderId: order.id });
+    }
+
+    return results.length > 0 ? results : null;
   },
 
-  // 从任务标题中匹配订单流程步骤
+  // 从任务标题中匹配订单流程步骤（返回所有匹配的步骤key数组）
   _matchStepFromTitle(title) {
     var lowerTitle = title.toLowerCase();
 
-    // 每个步骤的匹配关键词（按特异性排列）
+    // 每个步骤的匹配关键词
     var stepKeywords = {
       'project_init': ['立项', '方案号'],
       'bid_review': ['标书评审'],
@@ -470,40 +476,32 @@ const Store = {
       'make_production_order': ['生产订单'],
       'order_meeting': ['沟通会'],
       'send_minutes': ['会议纪要', '纪要'],
-      'place_order': ['取订单号', '下单通知'],
+      'place_order': ['取订单号', '下单通知', '下单'],
       'u8_add_inventory': ['新增存货'],
-      'u8_add_sales_order': ['新增销售订单', '销售订单录入'],
+      'u8_add_sales_order': ['新增销售订单', '销售订单录入', '销售订单'],
       'order_change_notice': ['变更通知'],
       'u8_change_inventory': ['变更存货'],
       'fat': ['fat'],
       'make_shipping_order': ['发货单'],
       'shipping_notice': ['发货通知'],
-      'u8_shipping': ['系统发货'],
+      'u8_shipping': ['系统发货', 'u8发货'],
     };
 
-    var bestKey = null;
-    var bestScore = 0;
+    var matchedKeys = [];
     var keys = Object.keys(stepKeywords);
 
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       var kws = stepKeywords[key];
-      var score = 0;
       for (var j = 0; j < kws.length; j++) {
         if (lowerTitle.indexOf(kws[j].toLowerCase()) !== -1) {
-          score += kws[j].length;
+          matchedKeys.push(key);
+          break; // 每个步骤只匹配一次
         }
-      }
-      if (score > bestScore) {
-        bestScore = score;
-        bestKey = key;
-      } else if (score > 0 && score === bestScore && bestKey !== null) {
-        // 分数相同且非零 → 匹配模糊，跳过
-        bestKey = null;
       }
     }
 
-    return bestKey;
+    return matchedKeys;
   },
 };
 
