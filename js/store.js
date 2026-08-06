@@ -213,10 +213,10 @@ const Store = {
 
     // 确保本地有数据（兜底，先于云端同步执行）
     if (!localStorage.getItem(STORAGE_KEYS.orders)) {
-      localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
+      localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify([]));
     }
     if (!localStorage.getItem(STORAGE_KEYS.tasks)) {
-      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(SAMPLE_TASKS));
+      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify([]));
     }
     if (!localStorage.getItem(STORAGE_KEYS.meta)) {
       localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
@@ -269,14 +269,14 @@ const Store = {
 
   // 重置数据
   resetAll() {
-    localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
-    localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(SAMPLE_TASKS));
-    localStorage.setItem(STORAGE_KEYS.salespersons, JSON.stringify(['张伟', '李娜', '王强']));
+    localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.salespersons, JSON.stringify([]));
     localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
     // 同步到云端
     if (typeof Cloud !== 'undefined' && Cloud.configured) {
-      SAMPLE_ORDERS.forEach(o => Cloud.upsertOrder(o));
-      SAMPLE_TASKS.forEach(t => Cloud.upsertTask(t));
+      // 云端数据需手动清理，resetAll 只重置本地数据
+      console.warn('resetAll: 云端数据未自动清空，请手动管理');
     }
   },
 
