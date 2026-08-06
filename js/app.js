@@ -738,10 +738,165 @@
         exportBtn.style.display = (monthTasks.length > 0) ? '' : 'none';
       }
 
+      // ========== 每日记录网格 ==========
+      renderDailyGrid(year, month, monthStr, monthTasks, orders);
+
     } catch (e) {
       console.error('renderReport error:', e);
       showToast('月报生成失败，请重试', 'error');
     }
+  }
+
+  // ========== 每日记录网格 ==========
+  function renderDailyGrid(year, month, monthStr, monthTasks, orders) {
+    var gridEl = $('#report-daily-grid');
+    var exportBtn = $('#btn-export-daily-img');
+    if (!gridEl) return;
+
+    // 生成本月所有日期
+    var daysInMonth = new Date(year, month, 0).getDate();
+    var dateList = [];
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateStr = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      dateList.push(dateStr);
+    }
+
+    // 收集所有人（从任务 + 订单中销售员）
+    var peopleSet = {};
+    // 从任务中收集人
+    for (var i = 0; i < monthTasks.length; i++) {
+      var t = monthTasks[i];
+      var person = t.salesperson || '未指派';
+      if (!peopleSet[person]) peopleSet[person] = true;
+    }
+    // 从订单已完成步骤中收集人
+    for (var j = 0; j < orders.length; j++) {
+      var o = orders[j];
+      var sp = o.salesperson || '未指派';
+      if (!peopleSet[sp]) peopleSet[sp] = true;
+    }
+    var people = Object.keys(peopleSet).sort();
+    if (people.length === 0) {
+      gridEl.innerHTML = '<div class="daily-grid-placeholder">本月暂无记录</div>';
+      if (exportBtn) exportBtn.style.display = 'none';
+      return;
+    }
+
+    // 按日期+人组织数据
+    var cellData = {}; // cellData[date][person] = [{num, content, status, sp}]
+    for (var dIdx = 0; dIdx < dateList.length; dIdx++) {
+      cellData[dateList[dIdx]] = {};
+      for (var pIdx = 0; pIdx < people.length; pIdx++) {
+        cellData[dateList[dIdx]][people[pIdx]] = [];
+      }
+    }
+
+    // 填充任务数据
+    for (var tIdx = 0; tIdx < monthTasks.length; tIdx++) {
+      var task = monthTasks[tIdx];
+      if (!task.date || task.date.indexOf(monthStr) !== 0) continue;
+      var person = task.salesperson || '未指派';
+      if (!cellData[task.date][person]) continue;
+      var status = task.completed ? 'done' : 'pending';
+      var statusText = task.completed ? '已完成' : '未完成';
+      cellData[task.date][person].push({
+        num: cellData[task.date][person].length + 1,
+        content: escapeHtml(task.title),
+        status: status,
+        statusText: statusText,
+        sp: person
+      });
+    }
+
+    // 填充订单步骤数据
+    for (var oIdx = 0; oIdx < orders.length; oIdx++) {
+      var ord = orders[oIdx];
+      if (!ord.steps || !ord.salesperson) continue;
+      var sp = ord.salesperson;
+      var stepKeys = Object.keys(ord.steps);
+      for (var sk = 0; sk < stepKeys.length; sk++) {
+        var sKey = stepKeys[sk];
+        var st = ord.steps[sKey];
+        if (!st.date || st.date.indexOf(monthStr) !== 0) continue;
+        if (st.status !== 'completed' && st.status !== 'skipped') continue;
+        var stepInfo = (typeof STEP_MAP !== 'undefined' && STEP_MAP[sKey]) ? STEP_MAP[sKey] : { name: sKey };
+        if (!cellData[st.date][sp]) continue;
+        var sStatus = st.status === 'completed' ? 'done' : 'pending';
+        var sText = st.status === 'completed' ? '已完成' : '不需要';
+        cellData[st.date][sp].push({
+          num: cellData[st.date][sp].length + 1,
+          content: escapeHtml(ord.orderNumber) + ' ' + escapeHtml(stepInfo.name),
+          status: sStatus,
+          statusText: sText,
+          sp: sp
+        });
+      }
+    }
+
+    // 构建表格
+    var dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+    var html = '<table class="daily-grid-table"><thead><tr><th style="min-width:60px">人员</th>';
+    for (var di = 0; di < dateList.length; di++) {
+      var ds = dateList[di];
+      var dd = new Date(ds);
+      var dayNum = dd.getDate();
+      var weekDay = dayNames[dd.getDay()];
+      html += '<th><div>' + month + '-' + dayNum + '</div><div class="day-week">' + weekDay + '</div></th>';
+    }
+    html += '</tr></thead><tbody>';
+    for (var pi = 0; pi < people.length; pi++) {
+      var pname = people[pi];
+      html += '<tr><td>' + escapeHtml(pname) + '</td>';
+      for (var di2 = 0; di2 < dateList.length; di2++) {
+        var items = cellData[dateList[di2]][pname] || [];
+        if (items.length === 0) {
+          html += '<td></td>';
+        } else {
+          html += '<td>';
+          for (var ii = 0; ii < items.length; ii++) {
+            var item = items[ii];
+            html += '<div class="daily-grid-item">';
+            html += '<span class="item-num">' + item.num + '</span>';
+            html += '<span class="item-status ' + item.status + '">' + item.statusText + '</span>';
+            html += '<div>' + item.content + '</div>';
+            html += '<div class="item-sp">销售: ' + escapeHtml(item.sp) + '</div>';
+            html += '</div>';
+          }
+          html += '</td>';
+        }
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    gridEl.innerHTML = html;
+
+    if (exportBtn) {
+      exportBtn.style.display = '';
+    }
+  }
+
+  // ========== 导出每日记录为图片 ==========
+  function exportDailyGrid() {
+    var gridEl = $('#report-daily-grid');
+    if (!gridEl || !gridEl.querySelector('table')) {
+      showToast('请先生成月报', 'error');
+      return;
+    }
+    if (typeof html2canvas === 'undefined') {
+      showToast('html2canvas 库未加载，请刷新页面后重试', 'error');
+      return;
+    }
+    showToast('正在生成图片...', 'info');
+    html2canvas(gridEl, { scale: 2, backgroundColor: '#ffffff' }).then(function(canvas) {
+      var link = document.createElement('a');
+      link.download = '每日记录.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('图片已导出', 'success');
+    }).catch(function(err) {
+      console.error('html2canvas error:', err);
+      showToast('图片导出失败', 'error');
+    });
   }
 
   // ========== 导出 Excel ==========
@@ -1136,6 +1291,8 @@
     $('#btn-save-step').addEventListener('click', saveStep);
     $('#btn-generate-report').addEventListener('click', renderReport);
     $('#btn-export-excel').addEventListener('click', exportReportExcel);
+    var exportDailyBtn = $('#btn-export-daily-img');
+    if (exportDailyBtn) exportDailyBtn.addEventListener('click', exportDailyGrid);
 
     // 重置数据
     $('#btn-reset-data').addEventListener('click', function() {
