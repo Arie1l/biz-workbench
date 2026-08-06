@@ -598,6 +598,7 @@
 
   // ========== 月报 ==========
   var lastReportData = null; // 缓存最近一次月报数据，供导出使用
+  var lastGridData = null;   // 缓存每日记录网格数据，供Excel导出使用
 
   function renderReport() {
     try {
@@ -833,9 +834,16 @@
       }
     }
 
-    // 构建表格
+    // 缓存网格数据供Excel导出
+    lastGridData = {
+      year: year, month: month, dateList: dateList,
+      people: people, cellData: cellData,
+      monthStr: monthStr
+    };
+
+    // 构建表格（不显示人员列）
     var dayNames = ['日', '一', '二', '三', '四', '五', '六'];
-    var html = '<table class="daily-grid-table"><thead><tr><th style="min-width:60px">人员</th>';
+    var html = '<table class="daily-grid-table"><thead><tr>';
     for (var di = 0; di < dateList.length; di++) {
       var ds = dateList[di];
       var dd = new Date(ds);
@@ -846,7 +854,7 @@
     html += '</tr></thead><tbody>';
     for (var pi = 0; pi < people.length; pi++) {
       var pname = people[pi];
-      html += '<tr><td>' + escapeHtml(pname) + '</td>';
+      html += '<tr>';
       for (var di2 = 0; di2 < dateList.length; di2++) {
         var items = cellData[dateList[di2]][pname] || [];
         if (items.length === 0) {
@@ -875,28 +883,75 @@
     }
   }
 
-  // ========== 导出每日记录为图片 ==========
+  // ========== 导出每日记录为Excel ==========
   function exportDailyGrid() {
-    var gridEl = $('#report-daily-grid');
-    if (!gridEl || !gridEl.querySelector('table')) {
-      showToast('请先生成月报', 'error');
+    if (!lastGridData) {
+      showToast('请先点击"生成月报"', 'error');
       return;
     }
-    if (typeof html2canvas === 'undefined') {
-      showToast('html2canvas 库未加载，请刷新页面后重试', 'error');
+    if (typeof XLSX === 'undefined') {
+      showToast('XLSX 库未加载，请刷新页面后重试', 'error');
       return;
     }
-    showToast('正在生成图片...', 'info');
-    html2canvas(gridEl, { scale: 2, backgroundColor: '#ffffff' }).then(function(canvas) {
-      var link = document.createElement('a');
-      link.download = '每日记录.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('图片已导出', 'success');
-    }).catch(function(err) {
-      console.error('html2canvas error:', err);
-      showToast('图片导出失败', 'error');
-    });
+
+    var d = lastGridData;
+    var dateList = d.dateList;
+    var people = d.people;
+    var cellData = d.cellData;
+    var year = d.year;
+    var month = d.month;
+
+    // 构建Excel数据
+    // 第一行：日期表头
+    var headerRow = ['人员'];
+    for (var di = 0; di < dateList.length; di++) {
+      var dd = new Date(dateList[di]);
+      headerRow.push((month) + '-' + dd.getDate());
+    }
+
+    var excelData = [headerRow];
+
+    // 每行：人员 + 每天的工作内容
+    for (var pi = 0; pi < people.length; pi++) {
+      var pname = people[pi];
+      var row = [pname];
+      for (var di2 = 0; di2 < dateList.length; di2++) {
+        var items = cellData[dateList[di2]][pname] || [];
+        if (items.length === 0) {
+          row.push('');
+        } else {
+          var cellTexts = [];
+          for (var ii = 0; ii < items.length; ii++) {
+            var item = items[ii];
+            cellTexts.push(item.statusText + ' ' + item.content + ' [销售:' + item.sp + ']');
+          }
+          row.push(cellTexts.join('\n'));
+        }
+      }
+      excelData.push(row);
+    }
+
+    // 生成Excel
+    try {
+      var wb = XLSX.utils.book_new();
+      var ws = XLSX.utils.aoa_to_sheet(excelData);
+
+      // 设置列宽：人员列稍宽，日期列统一
+      var colWidths = [{ wch: 10 }];
+      for (var ci = 0; ci < dateList.length; ci++) {
+        colWidths.push({ wch: 20 });
+      }
+      ws['!cols'] = colWidths;
+
+      XLSX.utils.book_append_sheet(wb, ws, '每日记录');
+
+      var filename = year + '年' + month + '月_每日记录.xlsx';
+      XLSX.writeFile(wb, filename);
+      showToast('Excel已导出：' + filename, 'success');
+    } catch (e) {
+      console.error('exportDailyGrid error:', e);
+      showToast('Excel导出失败：' + (e.message || '未知错误'), 'error');
+    }
   }
 
   // ========== 导出 Excel ==========

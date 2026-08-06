@@ -1218,17 +1218,6 @@ empty-state, .empty-state {
   color: var(--gray-400);
   font-weight: 400;
 }
-.daily-grid-table tbody td:first-child {
-  background: #f8fafc;
-  font-weight: 600;
-  color: var(--gray-700);
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  white-space: nowrap;
-  min-width: 80px;
-  text-align: left;
-}
 .daily-grid-table tbody td {
   color: var(--gray-700);
   line-height: 1.5;

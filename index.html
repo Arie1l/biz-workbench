@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="商务工作台">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 <body>
 <div class="app-layout">
@@ -325,7 +325,7 @@
           <div class="card-header" style="justify-content:space-between">
             <div class="card-title">🗓 每日记录</div>
             <div style="display:flex;align-items:center;gap:8px">
-              <button class="btn btn-secondary" id="btn-export-daily-img" style="display:none">🖼 导出图片</button>
+              <button class="btn btn-secondary" id="btn-export-daily-img" style="display:none">📥 导出Excel</button>
             </div>
           </div>
           <div class="card-body" style="padding:0;overflow-x:auto">
@@ -603,6 +603,6 @@ CREATE POLICY "all_tasks" ON tasks FOR ALL TO anon USING (true) WITH CHECK (true
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/cloud.js?v=11"></script>
 <script src="js/store.js?v=11"></script>
-<script src="js/app.js?v=11"></script>
+<script src="js/app.js?v=12"></script>
 </body>
 </html>
