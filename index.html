@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>商务专员工作台</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="商务工作台">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css?v=13">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ========== 侧边栏 ========== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">📋</div>
+      <div>
+        <div class="title">商务工作台</div>
+        <div class="subtitle">订单 · 任务 · 月报</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">工作</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="icon">🏠</span>
+        <span>工作台首页</span>
+      </div>
+      <div class="nav-item" data-page="tasks">
+        <span class="icon">✅</span>
+        <span>每日任务</span>
+        <span class="badge" id="nav-task-badge">0</span>
+      </div>
+      <div class="nav-item" data-page="orders">
+        <span class="icon">📦</span>
+        <span>订单管理</span>
+      </div>
+      <div class="nav-item" data-page="report">
+        <span class="icon">📊</span>
+        <span>月报总结</span>
+      </div>
+      <div class="nav-section-label">系统</div>
+      <div class="nav-item" id="btn-reset-data">
+        <span class="icon">🔄</span>
+        <span>重置示例数据</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer" id="cloud-status-footer">
+      <div class="cloud-status" id="cloud-status">
+        <span class="cloud-dot local"></span>
+        <span class="cloud-text">本地存储</span>
+      </div>
+      <button class="btn-cloud-settings" id="btn-cloud-settings">云端同步设置</button>
+    </div>
+  </aside>
+
+  <!-- ========== 主内容区 ========== -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-title" id="topbar-title">工作台首页</div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbar-date">📅</div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- ===== 首页 ===== -->
+      <div class="page active" id="page-dashboard">
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">📦</div>
+            <div class="stat-value" id="dash-total-orders">0</div>
+            <div class="stat-label">订单总数</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-icon purple">⏳</div>
+            <div class="stat-value" id="dash-in-progress">0</div>
+            <div class="stat-label">进行中订单</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-icon orange">📌</div>
+            <div class="stat-value" id="dash-today-tasks">0</div>
+            <div class="stat-label">今日待办任务</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon green">🎉</div>
+            <div class="stat-value" id="dash-completed-orders">0</div>
+            <div class="stat-label">已完成订单</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <!-- 今日任务 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">✅ 今日任务</div>
+              <button class="btn btn-sm btn-primary" onclick="App.toggleTask;document.querySelector('.nav-item[data-page=tasks]').click()">查看全部</button>
+            </div>
+            <div class="card-body" style="padding:0" id="dash-tasks"></div>
+          </div>
+
+          <!-- 订单概览 -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📦 进行中订单</div>
+              <button class="btn btn-sm btn-primary" onclick="document.querySelector('.nav-item[data-page=orders]').click()">查看全部</button>
+            </div>
+            <div class="card-body" style="padding:0" id="dash-orders"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 每日任务 ===== -->
+      <div class="page" id="page-tasks">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">✅ 任务管理</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="date" class="form-input" id="task-date-input" style="width:auto">
+              <button class="btn btn-primary" id="btn-add-task">+ 新增任务</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:12px 20px;display:flex;gap:20px;border-bottom:1px solid var(--gray-100)">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:24px;font-weight:700;color:var(--danger)" id="task-count-pending">0</span>
+              <span style="font-size:12px;color:var(--gray-500)">待办</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:24px;font-weight:700;color:var(--success)" id="task-count-done">0</span>
+              <span style="font-size:12px;color:var(--gray-500)">已完成</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:24px;font-weight:700;color:var(--gray-700)" id="task-count-total">0</span>
+              <span style="font-size:12px;color:var(--gray-500)">合计</span>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0" id="task-list"></div>
+        </div>
+      </div>
+
+      <!-- ===== 订单管理 ===== -->
+      <div class="page" id="page-orders">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              📦 订单管理
+              <span style="font-size:13px;font-weight:400;color:var(--gray-400);margin-left:8px">共 <span id="order-count">0</span> 条</span>
+            </div>
+            <button class="btn btn-primary" id="btn-add-order">+ 新增订单</button>
+          </div>
+    <div class="card-body" style="padding-bottom:0">
+      <div class="status-tabs" id="order-status-tabs">
+        <button class="status-tab active" data-status="active">进行中</button>
+        <button class="status-tab" data-status="completed">已完成（历史）</button>
+      </div>
+      <div class="filter-bar">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="order-search" placeholder="搜索订单号 / 项目名 / 客户名">
+              </div>
+              <select class="form-select" id="order-filter-sp" style="width:auto">
+                <option value="">全部销售员</option>
+              </select>
+              <select class="form-select" id="order-filter-phase" style="width:auto">
+                <option value="">全部阶段</option>
+                <option value="前期评审环节">前期评审环节</option>
+                <option value="下单环节">下单环节</option>
+                <option value="发货环节">发货环节</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>订单号</th>
+                  <th>项目名称</th>
+                  <th>客户</th>
+                  <th>销售员</th>
+                  <th>当前阶段</th>
+                  <th>进度</th>
+                  <th>状态</th>
+                  <th style="text-align:right">合同金额</th>
+                </tr>
+              </thead>
+              <tbody id="order-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 订单详情 ===== -->
+      <div class="page" id="page-order-detail">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button class="btn btn-secondary" id="btn-back-orders">← 返回列表</button>
+          <button class="btn btn-secondary" id="btn-edit-order">✎ 编辑订单</button>
+          <button class="btn btn-secondary" id="btn-archive-order" style="color:var(--success)">📦 归档为已完成</button>
+          <button class="btn btn-secondary" id="btn-restore-order" style="color:var(--purple);display:none">🔄 恢复为进行中</button>
+          <button class="btn btn-danger" id="btn-delete-order">🗑 删除</button>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+              <div>
+                <div style="font-size:20px;font-weight:700;color:var(--gray-900)" id="detail-project-name"></div>
+                <div style="font-size:14px;color:var(--gray-500);margin-top:4px" id="detail-order-number"></div>
+              </div>
+              <div id="detail-phase"></div>
+            </div>
+            <div class="order-detail-info">
+              <div class="detail-field">
+                <span class="detail-label">客户名称</span>
+                <span class="detail-value" id="detail-customer"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">销售员</span>
+                <span class="detail-value" id="detail-salesperson"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">方案号</span>
+                <span class="detail-value" id="detail-proposal-number"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">合同金额</span>
+                <span class="detail-value" id="detail-amount"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">创建日期</span>
+                <span class="detail-value" id="detail-created"></span>
+              </div>
+              <div class="detail-field">
+                <span class="detail-label">备注</span>
+                <span class="detail-value" id="detail-remark"></span>
+              </div>
+            </div>
+            <div style="margin-top:8px">
+              <span class="detail-label">完成进度</span>
+              <div style="margin-top:6px" id="detail-progress"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📍 订单进度流程</div>
+          </div>
+          <div class="card-body" id="detail-workflow"></div>
+        </div>
+      </div>
+
+      <!-- ===== 月报总结 ===== -->
+      <div class="page" id="page-report">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">📊 月报总结</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select class="form-select" id="report-year" style="width:auto">
+                <option value="2025">2025年</option>
+                <option value="2026" selected>2026年</option>
+              </select>
+              <select class="form-select" id="report-month" style="width:auto">
+                <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+                <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+                <option value="7" selected>7月</option><option value="8">8月</option><option value="9">9月</option>
+                <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+              </select>
+              <button class="btn btn-primary" id="btn-generate-report">生成月报</button>
+              <button class="btn btn-secondary" id="btn-export-excel" style="display:none">📥 导出Excel</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="report-stat-row">
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-month-orders">0</div>
+                <div class="report-stat-label">本月新增订单</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-month-amount">¥0</div>
+                <div class="report-stat-label">本月合同金额</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-task-rate">0%</div>
+                <div class="report-stat-label">本月任务完成率</div>
+              </div>
+            </div>
+            <div class="report-stat-row">
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-total-orders">0</div>
+                <div class="report-stat-label">累计订单总数</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-completed-orders">0</div>
+                <div class="report-stat-label">已完成订单</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-in-progress">0</div>
+                <div class="report-stat-label">进行中订单</div>
+              </div>
+            </div>
+            <div class="report-stat-row">
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-total-amount">¥0</div>
+                <div class="report-stat-label">累计合同金额</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-task-done">0</div>
+                <div class="report-stat-label">本月完成任务</div>
+              </div>
+              <div class="report-stat">
+                <div class="report-stat-value" id="report-task-total">0</div>
+                <div class="report-stat-label">本月任务总数</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header" style="justify-content:space-between">
+            <div class="card-title">🗓 每日记录</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="btn btn-secondary" id="btn-export-daily-img" style="display:none">📥 导出Excel</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:0;overflow-x:auto">
+            <div id="report-daily-grid" style="display:flex;flex-direction:column;min-width:fit-content">
+              <div class="daily-grid-placeholder" style="padding:20px;color:var(--gray-400);text-align:center">请先生成月报</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📈 订单阶段分布</div></div>
+            <div class="card-body">
+              <div class="report-chart" id="report-chart"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📉 近6个月订单趋势</div></div>
+            <div class="card-body">
+              <div class="report-chart" id="report-trend"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">👥 按销售员统计</div></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>销售员</th>
+                  <th>订单总数</th>
+                  <th>已完成</th>
+                  <th>进行中</th>
+                  <th style="text-align:right">合同金额</th>
+                </tr>
+              </thead>
+              <tbody id="report-sp-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">📝 月报总结</div></div>
+          <div class="card-body">
+            <p id="report-summary" style="font-size:14px;line-height:1.8;color:var(--gray-700)"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ========== 模态框: 步骤更新 ========== -->
+<div class="modal-overlay" id="step-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="step-modal-title">更新步骤</div>
+      <button class="modal-close" onclick="document.getElementById('step-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">步骤说明</label>
+        <div style="font-size:13px;color:var(--gray-500);padding:8px 12px;background:var(--gray-50);border-radius:6px" id="step-modal-desc"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">状态</label>
+          <select class="form-select" id="step-status"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">完成日期</label>
+          <input type="date" class="form-input" id="step-date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="step-note" placeholder="填写备注信息..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('step-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-save-step">确认更新</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 模态框: 新增/编辑订单 ========== -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="order-modal-title">新增订单</div>
+      <button class="modal-close" onclick="document.getElementById('order-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="order-form">
+      <input type="hidden" id="order-form-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">订单号 *</label>
+          <input type="text" class="form-input" id="order-number" placeholder="如 DD202607001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">销售员 *</label>
+          <input type="text" class="form-input" id="order-salesperson" placeholder="如 张伟">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">项目名称 *</label>
+        <input type="text" class="form-input" id="order-project-name" placeholder="如 智慧园区安防系统">
+      </div>
+      <div class="form-group">
+        <label class="form-label">客户名称 *</label>
+        <input type="text" class="form-input" id="order-customer" placeholder="如 深圳市科创科技有限公司">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">方案号</label>
+          <input type="text" class="form-input" id="order-proposal-number" placeholder="如 FA202607001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">合同金额</label>
+          <input type="number" class="form-input" id="order-amount" placeholder="如 580000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">订单状态</label>
+          <select class="form-select" id="order-status">
+            <option value="active">进行中</option>
+            <option value="completed">已完成（历史订单）</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" id="order-remark" placeholder="备注信息..."></textarea>
+      </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('order-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-save-order">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 模态框: 新增/编辑任务 ========== -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="task-modal-title">新增任务</div>
+      <button class="modal-close" onclick="document.getElementById('task-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="task-form">
+      <div class="form-group">
+        <label class="form-label">任务标题 *</label>
+        <input type="text" class="form-input" id="task-title" placeholder="如 跟进DD202607001订单U8录入">
+      </div>
+      <div class="form-group">
+        <label class="form-label">任务描述</label>
+        <textarea class="form-textarea" id="task-description" placeholder="任务详细描述..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">日期 *</label>
+          <input type="date" class="form-input" id="task-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">优先级</label>
+          <select class="form-select" id="task-priority">
+            <option value="high">高优先</option>
+            <option value="medium" selected>中优先</option>
+            <option value="low">低优先</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">关联销售员</label>
+          <select class="form-select" id="task-salesperson"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">关联订单</label>
+          <select class="form-select" id="task-related-order"></select>
+        </div>
+      </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('task-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-save-task">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 加载遮罩 ========== -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">正在同步云端数据...</div>
+</div>
+
+<!-- ========== 模态框: 云端同步设置 ========== -->
+<div class="modal-overlay" id="cloud-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">云端同步设置</div>
+      <button class="modal-close" onclick="document.getElementById('cloud-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cloud-guide">
+        <div class="cloud-guide-title">配置步骤（免费，约3分钟）</div>
+        <div class="cloud-guide-step">
+          <span class="step-num">1</span>
+          <div>
+            打开 <a href="https://supabase.com" target="_blank" class="cloud-link">supabase.com</a>，用 GitHub 账号登录（点 Sign in → Continue with GitHub）
+          </div>
+        </div>
+        <div class="cloud-guide-step">
+          <span class="step-num">2</span>
+          <div>登录后点 <strong>New Project</strong>，名字随便填（如 my-workbench），密码自动生成不用管，地区选 <strong>Singapore</strong>，点 Create</div>
+        </div>
+        <div class="cloud-guide-step">
+          <span class="step-num">3</span>
+          <div>等项目建好后（约1-2分钟），点左侧 <strong>SQL Editor</strong> → New query，把下面的 SQL 复制粘贴进去，点 Run</div>
+        </div>
+        <div class="cloud-sql-box" id="cloud-sql-box">CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  order_number TEXT, project_name TEXT, customer TEXT,
+  salesperson TEXT, proposal_number TEXT DEFAULT '',
+  contract_amount NUMERIC DEFAULT 0, created_at TEXT DEFAULT '',
+  status TEXT DEFAULT 'active',
+  remark TEXT DEFAULT '', steps JSONB DEFAULT '{}'::jsonb
+);
+CREATE TABLE IF NOT EXISTS tasks (
+  id TEXT PRIMARY KEY, title TEXT, description TEXT DEFAULT '',
+  date TEXT, priority TEXT DEFAULT 'medium',
+  completed BOOLEAN DEFAULT FALSE,
+  related_order TEXT DEFAULT '', salesperson TEXT DEFAULT ''
+);
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "all_orders" ON orders FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "all_tasks" ON tasks FOR ALL TO anon USING (true) WITH CHECK (true);</div>
+        <button class="btn btn-sm btn-secondary" id="btn-copy-sql" style="margin-top:8px">复制 SQL</button>
+        <div class="cloud-guide-step" style="margin-top:16px">
+          <span class="step-num">4</span>
+          <div>点左侧 <strong>Project Settings</strong>（齿轮图标）→ <strong>API</strong>，找到 <strong>Project URL</strong> 和 <strong>anon public key</strong>，复制后填到下面</div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:20px">
+        <label class="form-label">Project URL</label>
+        <input type="text" class="form-input" id="supabase-url" placeholder="https://xxxxx.supabase.co">
+      </div>
+      <div class="form-group">
+        <label class="form-label">anon public key</label>
+        <textarea class="form-textarea" id="supabase-key" placeholder="eyJhbGciOi..." style="font-size:12px;min-height:60px"></textarea>
+      </div>
+
+      <div class="cloud-test-result" id="cloud-test-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-cloud-disconnect" style="margin-right:auto;display:none">断开连接</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('cloud-modal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" id="btn-cloud-connect">连接并同步</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/cloud.js?v=11"></script>
+<script src="js/store.js?v=11"></script>
+<script src="js/app.js?v=13"></script>
+</body>
+</html>
