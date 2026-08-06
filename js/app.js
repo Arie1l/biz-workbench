@@ -424,11 +424,71 @@
   }
 
   // ========== 新增/编辑订单 ==========
+  function populateSalespersonDatalist() {
+    var list = Store.getSalespersons();
+    var dl = $('#salesperson-list');
+    if (dl) {
+      dl.innerHTML = list.map(function(s) { return '<option value="' + escapeAttr(s) + '">'; }).join('');
+    }
+  }
+
+  // ========== 销售员管理 ==========
+  function renderSalespersonList() {
+    var list = Store.getSalespersons();
+    var container = $('#sp-list');
+    if (!container) return;
+    if (list.length === 0) {
+      container.innerHTML = '<div style="color:#999;text-align:center;padding:20px">暂无销售员</div>';
+      return;
+    }
+    container.innerHTML = list.map(function(name, i) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);border-radius:6px">' +
+        '<span style="font-weight:500">' + escapeHtml(name) + '</span>' +
+        '<button class="btn btn-sm btn-outline" style="color:#e74c3c;border-color:#e74c3c" onclick="removeSalesperson(' + i + ')">删除</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function openSalespersonModal() {
+    renderSalespersonList();
+    $('#sp-modal').classList.add('show');
+  }
+
+  function addNewSalesperson() {
+    var input = $('#sp-new-name');
+    var name = input.value.trim();
+    if (!name) {
+      showToast('请输入销售员姓名', 'error');
+      return;
+    }
+    if (Store.getSalespersons().indexOf(name) !== -1) {
+      showToast('该销售员已存在', 'error');
+      return;
+    }
+    Store.addSalesperson(name);
+    input.value = '';
+    renderSalespersonList();
+    showToast('销售员已添加', 'success');
+  }
+
+  function removeSalesperson(index) {
+    var list = Store.getSalespersons();
+    var name = list[index];
+    if (!confirm('确认删除销售员「' + name + '」？此操作同时会将该销售员下的所有订单和任务的销售员字段清空。')) return;
+    Store.removeSalesperson(name);
+    renderSalespersonList();
+    // 刷新当前页面
+    try { renderOrders(); } catch(e) {}
+    try { renderDailyGrid(); } catch(e) {}
+    showToast('销售员已删除', 'success');
+  }
+
   function openOrderModal() {
     $('#order-modal-title').textContent = '新增订单';
     $('#order-form').reset();
     $('#order-form-id').value = '';
     $('#order-status').value = 'active';
+    populateSalespersonDatalist();
     $('#order-modal').classList.add('show');
   }
 
@@ -445,6 +505,7 @@
     $('#order-amount').value = order.contractAmount || '';
     $('#order-status').value = order.status || 'active';
     $('#order-remark').value = order.remark || '';
+    populateSalespersonDatalist();
     $('#order-modal').classList.add('show');
   }
 
@@ -1380,6 +1441,16 @@
     var exportDailyBtn = $('#btn-export-daily-img');
     if (exportDailyBtn) exportDailyBtn.addEventListener('click', exportDailyGrid);
 
+    // 销售员管理
+    var btnManageSp = $('#btn-manage-sp');
+    if (btnManageSp) btnManageSp.addEventListener('click', openSalespersonModal);
+    var btnAddSp = $('#btn-add-sp');
+    if (btnAddSp) btnAddSp.addEventListener('click', addNewSalesperson);
+    var spNewName = $('#sp-new-name');
+    if (spNewName) spNewName.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') addNewSalesperson();
+    });
+
     // 重置数据
     $('#btn-reset-data').addEventListener('click', function() {
       if (confirm('确认重置所有数据？这将清除所有自定义数据并恢复示例数据。')) {
@@ -1412,7 +1483,8 @@
     deleteOrder: deleteOrder,
     archiveOrder: archiveOrder,
     restoreOrder: restoreOrder,
-    backToOrders: backToOrders
+    backToOrders: backToOrders,
+    removeSalesperson: removeSalesperson
   };
 
   // DOM Ready

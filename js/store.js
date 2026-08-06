@@ -199,6 +199,7 @@ const SAMPLE_TASKS = [
 const STORAGE_KEYS = {
   orders: 'workbench_orders',
   tasks: 'workbench_tasks',
+  salespersons: 'workbench_salespersons',
   meta: 'workbench_meta'
 };
 
@@ -219,6 +220,11 @@ const Store = {
     }
     if (!localStorage.getItem(STORAGE_KEYS.meta)) {
       localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
+    }
+
+    // 首次使用：初始化空销售员列表（用户需手动在"销售员管理"中添加）
+    if (!localStorage.getItem(STORAGE_KEYS.salespersons)) {
+      localStorage.setItem(STORAGE_KEYS.salespersons, JSON.stringify([]));
     }
 
     // 如果云端已配置，进行合并同步（不覆盖本地数据）
@@ -265,6 +271,7 @@ const Store = {
   resetAll() {
     localStorage.setItem(STORAGE_KEYS.orders, JSON.stringify(SAMPLE_ORDERS));
     localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(SAMPLE_TASKS));
+    localStorage.setItem(STORAGE_KEYS.salespersons, JSON.stringify(['张伟', '李娜', '王强']));
     localStorage.setItem(STORAGE_KEYS.meta, JSON.stringify({}));
     // 同步到云端
     if (typeof Cloud !== 'undefined' && Cloud.configured) {
@@ -300,6 +307,7 @@ const Store = {
     order.steps[ALL_STEPS[0].key] = { status: 'current', date: '', note: '' };
     orders.unshift(order);
     this.saveOrders(orders);
+    this._ensureSalesperson(order.salesperson);
     if (typeof Cloud !== 'undefined') Cloud.upsertOrder(order);
     return order;
   },
@@ -310,6 +318,7 @@ const Store = {
     if (idx >= 0) {
       orders[idx] = { ...orders[idx], ...updates };
       this.saveOrders(orders);
+      if (updates.salesperson) this._ensureSalesperson(updates.salesperson);
       if (typeof Cloud !== 'undefined') Cloud.upsertOrder(orders[idx]);
       return orders[idx];
     }
@@ -382,10 +391,100 @@ const Store = {
     return Math.round((completed / ALL_STEPS.length) * 100);
   },
 
-  // 获取销售员列表
+  // 获取销售员列表（独立管理，不从订单提取）
   getSalespersons() {
-    const orders = this.getOrders();
-    return [...new Set(orders.map(o => o.salesperson))];
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.salespersons) || '[]');
+  },
+
+  saveSalespersons(list) {
+    localStorage.setItem(STORAGE_KEYS.salespersons, JSON.stringify(list));
+  },
+
+  addSalesperson(name) {
+    var list = this.getSalespersons();
+    if (list.indexOf(name) === -1) {
+      list.push(name);
+      list.sort();
+      this.saveSalespersons(list);
+    }
+  },
+
+  deleteSalesperson(name) {
+    var list = this.getSalespersons().filter(function(s) { return s !== name; });
+    this.saveSalespersons(list);
+  },
+
+  // 将销售员从列表移除，并清空关联的订单和任务中的该销售员字段
+  removeSalesperson(name) {
+    // 从销售员列表删除
+    this.deleteSalesperson(name);
+    // 清空关联订单中的销售员字段
+    var orders = this.getOrders();
+    var needSave = false;
+    for (var i = 0; i < orders.length; i++) {
+      if (orders[i].salesperson === name) {
+        orders[i].salesperson = '';
+        needSave = true;
+      }
+    }
+    if (needSave) this.saveOrders(orders);
+    // 清空关联任务中的销售员字段
+    var tasks = this.getTasks();
+    var taskNeedSave = false;
+    for (var j = 0; j < tasks.length; j++) {
+      if (tasks[j].salesperson === name) {
+        tasks[j].salesperson = '';
+        taskNeedSave = true;
+      }
+    }
+    if (taskNeedSave) localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+  },
+
+  renameSalesperson(oldName, newName) {
+    if (!newName || oldName === newName) return;
+    // 更新销售员列表
+    var list = this.getSalespersons();
+    var idx = list.indexOf(oldName);
+    if (idx !== -1) {
+      list[idx] = newName;
+      list.sort();
+      this.saveSalespersons(list);
+    }
+    // 更新所有关联订单
+    var orders = this.getOrders();
+    var needSave = false;
+    for (var i = 0; i < orders.length; i++) {
+      if (orders[i].salesperson === oldName) {
+        orders[i].salesperson = newName;
+        needSave = true;
+      }
+    }
+    if (needSave) {
+      this.saveOrders(orders);
+    }
+    // 更新所有关联任务
+    var tasks = this.getTasks();
+    var taskNeedSave = false;
+    for (var j = 0; j < tasks.length; j++) {
+      if (tasks[j].salesperson === oldName) {
+        tasks[j].salesperson = newName;
+        taskNeedSave = true;
+      }
+    }
+    if (taskNeedSave) {
+      localStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify(tasks));
+    }
+  },
+
+  // 自动将新销售员加入列表（如果不存在）
+  _ensureSalesperson(name) {
+    if (!name) return;
+    var list = this.getSalespersons();
+    if (list.indexOf(name) === -1) {
+      list.push(name);
+      list.sort();
+      this.saveSalespersons(list);
+    }
   },
 
   // ========== 任务 ==========

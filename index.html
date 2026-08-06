@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="商务工作台">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body>
 <div class="app-layout">
@@ -43,6 +43,10 @@
         <span>月报总结</span>
       </div>
       <div class="nav-section-label">系统</div>
+      <div class="nav-item" id="btn-manage-sp">
+        <span class="icon">👥</span>
+        <span>销售员管理</span>
+      </div>
       <div class="nav-item" id="btn-reset-data">
         <span class="icon">🔄</span>
         <span>重置示例数据</span>
@@ -431,7 +435,8 @@
         </div>
         <div class="form-group">
           <label class="form-label">销售员 *</label>
-          <input type="text" class="form-input" id="order-salesperson" placeholder="如 张伟">
+          <input type="text" class="form-input" id="order-salesperson" placeholder="选择或输入销售员" list="salesperson-list" autocomplete="off">
+          <datalist id="salesperson-list"></datalist>
         </div>
       </div>
       <div class="form-group">
@@ -530,6 +535,26 @@
   <div class="loading-text" id="loading-text">正在同步云端数据...</div>
 </div>
 
+<!-- ========== 模态框: 销售员管理 ========== -->
+<div class="modal-overlay" id="sp-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">👥 销售员管理</div>
+      <button class="modal-close" onclick="document.getElementById('sp-modal').classList.remove('show')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input type="text" class="form-input" id="sp-new-name" placeholder="输入新销售员姓名" style="flex:1">
+        <button class="btn btn-primary" id="btn-add-sp">添加</button>
+      </div>
+      <div id="sp-list" style="max-height:300px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('sp-modal').classList.remove('show')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- ========== 模态框: 云端同步设置 ========== -->
 <div class="modal-overlay" id="cloud-modal">
   <div class="modal" style="max-width:560px">
@@ -602,7 +627,7 @@ CREATE POLICY "all_tasks" ON tasks FOR ALL TO anon USING (true) WITH CHECK (true
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="js/cloud.js?v=11"></script>
-<script src="js/store.js?v=11"></script>
-<script src="js/app.js?v=14"></script>
+<script src="js/store.js?v=12"></script>
+<script src="js/app.js?v=16"></script>
 </body>
 </html>
