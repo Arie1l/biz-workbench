@@ -935,14 +935,17 @@
       maxItems = Math.max(maxItems, allItems.length);
     }
 
-    // 表头：日期
+    // 表头：日期 + 星期
+    var dayNames = ['日', '一', '二', '三', '四', '五', '六'];
     var headerRow = [];
+    var weekdayRow = [];
     for (var di = 0; di < dateList.length; di++) {
       var dd = new Date(dateList[di]);
       headerRow.push(month + '-' + dd.getDate());
+      weekdayRow.push('星期' + dayNames[dd.getDay()]);
     }
 
-    var excelData = [headerRow];
+    var excelData = [headerRow, weekdayRow];
 
     // 数据行：第N行为每个日期的第N个任务
     for (var ri = 0; ri < maxItems; ri++) {
