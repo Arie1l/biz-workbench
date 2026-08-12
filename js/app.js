@@ -801,7 +801,7 @@
       }
 
       // ========== 每日记录网格 ==========
-      renderDailyGrid(year, month, monthStr, monthTasks, orders);
+      renderDailyGrid(year, month, monthStr, monthTasks);
 
     } catch (e) {
       console.error('renderReport error:', e);
@@ -810,7 +810,7 @@
   }
 
   // ========== 每日记录网格 ==========
-  function renderDailyGrid(year, month, monthStr, monthTasks, orders) {
+  function renderDailyGrid(year, month, monthStr, monthTasks) {
     var gridEl = $('#report-daily-grid');
     var exportBtn = $('#btn-export-daily-img');
     if (!gridEl) return;
@@ -823,19 +823,12 @@
       dateList.push(dateStr);
     }
 
-    // 收集所有人（从任务 + 订单中销售员）
+    // 收集所有人（仅从任务中销售员）
     var peopleSet = {};
-    // 从任务中收集人
     for (var i = 0; i < monthTasks.length; i++) {
       var t = monthTasks[i];
       var person = t.salesperson || '未指派';
       if (!peopleSet[person]) peopleSet[person] = true;
-    }
-    // 从订单已完成步骤中收集人
-    for (var j = 0; j < orders.length; j++) {
-      var o = orders[j];
-      var sp = o.salesperson || '未指派';
-      if (!peopleSet[sp]) peopleSet[sp] = true;
     }
     var people = Object.keys(peopleSet).sort();
     if (people.length === 0) {
@@ -870,31 +863,6 @@
       });
     }
 
-    // 填充订单步骤数据
-    for (var oIdx = 0; oIdx < orders.length; oIdx++) {
-      var ord = orders[oIdx];
-      if (!ord.steps || !ord.salesperson) continue;
-      var sp = ord.salesperson;
-      var stepKeys = Object.keys(ord.steps);
-      for (var sk = 0; sk < stepKeys.length; sk++) {
-        var sKey = stepKeys[sk];
-        var st = ord.steps[sKey];
-        if (!st.date || st.date.indexOf(monthStr) !== 0) continue;
-        if (st.status !== 'completed' && st.status !== 'skipped') continue;
-        var stepInfo = (typeof STEP_MAP !== 'undefined' && STEP_MAP[sKey]) ? STEP_MAP[sKey] : { name: sKey };
-        if (!cellData[st.date][sp]) continue;
-        var sStatus = st.status === 'completed' ? 'done' : 'pending';
-        var sText = st.status === 'completed' ? '已完成' : '不需要';
-        cellData[st.date][sp].push({
-          num: cellData[st.date][sp].length + 1,
-          content: escapeHtml(ord.orderNumber) + ' ' + escapeHtml(stepInfo.name),
-          status: sStatus,
-          statusText: sText,
-          sp: sp
-        });
-      }
-    }
-
     // 缓存网格数据供Excel导出
     lastGridData = {
       year: year, month: month, dateList: dateList,
@@ -918,9 +886,10 @@
       maxItems = Math.max(maxItems, allItems.length);
     }
 
-    // 构建表格：列=日期，行=任务序号（第1个任务在第1行，第2个在第2行...）
+    // 构建表格：序号列 + 列=日期，行=任务序号（第1个任务在第1行，第2个在第2行...）
     var dayNames = ['日', '一', '二', '三', '四', '五', '六'];
     var html = '<table class="daily-grid-table"><thead><tr>';
+    html += '<th class="col-seq">序号</th>';
     for (var di = 0; di < dateList.length; di++) {
       var ds = dateList[di];
       var dd = new Date(ds);
@@ -931,17 +900,17 @@
     html += '</tr></thead><tbody>';
 
     if (maxItems === 0) {
-      html += '<tr><td colspan="' + dateList.length + '" style="text-align:center;color:#9ca3af;padding:24px">本月暂无记录</td></tr>';
+      html += '<tr><td class="col-seq"></td><td colspan="' + dateList.length + '" style="text-align:center;color:#9ca3af;padding:24px">本月暂无记录</td></tr>';
     } else {
       for (var ri = 0; ri < maxItems; ri++) {
         html += '<tr>';
+        html += '<td class="col-seq">' + (ri + 1) + '</td>';
         for (var di2 = 0; di2 < dateList.length; di2++) {
           var items = flatByDate[dateList[di2]];
           if (ri < items.length) {
             var item = items[ri];
             html += '<td>';
             html += '<div class="daily-grid-item">';
-            html += '<span class="item-num">' + (ri + 1) + '</span>';
             html += '<span class="item-status ' + item.status + '">' + item.statusText + '</span>';
             html += '<div>' + item.content + '</div>';
             html += '<div class="item-sp">销售: ' + escapeHtml(item.sp) + '</div>';
@@ -996,10 +965,10 @@
       maxItems = Math.max(maxItems, allItems.length);
     }
 
-    // 表头：日期 + 星期
+    // 表头：序号 + 日期 + 星期
     var dayNames = ['日', '一', '二', '三', '四', '五', '六'];
-    var headerRow = [];
-    var weekdayRow = [];
+    var headerRow = ['序号'];
+    var weekdayRow = [''];
     for (var di = 0; di < dateList.length; di++) {
       var dd = new Date(dateList[di]);
       headerRow.push(month + '-' + dd.getDate());
@@ -1010,7 +979,7 @@
 
     // 数据行：第N行为每个日期的第N个任务
     for (var ri = 0; ri < maxItems; ri++) {
-      var row = [];
+      var row = [(ri + 1)];
       for (var di2 = 0; di2 < dateList.length; di2++) {
         var items = flatByDate[dateList[di2]];
         if (ri < items.length) {
@@ -1028,8 +997,8 @@
       var wb = XLSX.utils.book_new();
       var ws = XLSX.utils.aoa_to_sheet(excelData);
 
-      // 设置列宽
-      var colWidths = [];
+      // 设置列宽（序号列窄，日期列宽）
+      var colWidths = [{ wch: 6 }];
       for (var ci = 0; ci < dateList.length; ci++) {
         colWidths.push({ wch: 20 });
       }

@@ -1187,8 +1187,13 @@ empty-state, .empty-state {
 
 /* 小屏手机 (<480px) */
 /* ========== 每日记录日历网格 ========== */
+.daily-grid-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+}
 .daily-grid-table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 12px;
   table-layout: auto;
   width: max-content;
@@ -1202,6 +1207,19 @@ empty-state, .empty-state {
   min-width: 120px;
   max-width: 200px;
 }
+/* 序号列（固定在左侧） */
+.daily-grid-table th.col-seq,
+.daily-grid-table td.col-seq {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 44px;
+  max-width: 44px;
+  width: 44px;
+  text-align: center;
+  white-space: nowrap;
+  font-weight: 600;
+}
 .daily-grid-table thead th {
   background: #f8fafc;
   color: var(--gray-600);
@@ -1212,6 +1230,15 @@ empty-state, .empty-state {
   top: 0;
   z-index: 2;
   white-space: nowrap;
+}
+/* 左上角序号表头需要更高 z-index 才能盖住 sticky 列和 sticky 行 */
+.daily-grid-table thead th.col-seq {
+  z-index: 4;
+}
+.daily-grid-table tbody td.col-seq {
+  background: #f8fafc;
+  color: var(--gray-500);
+  font-size: 11px;
 }
 .daily-grid-table thead th .day-week {
   font-size: 10px;
