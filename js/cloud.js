@@ -49,14 +49,14 @@ const Cloud = {
     }
   },
 
-  // 获取配置（优先 localStorage，无则用内置）
+  // 获取配置（仅返回用户手动保存的配置；未配置时返回 null，不自动连接内置共享库）
   getConfig() {
     try {
       const saved = JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY) || 'null');
       if (saved && saved.url && saved.key) return saved;
     } catch {}
-    // 使用内置配置
-    return { url: BUILTIN_SUPABASE_URL, key: BUILTIN_SUPABASE_KEY };
+    // 未手动配置云端 → 不连接任何云端，数据仅存本地浏览器
+    return null;
   },
 
   // 保存配置并初始化客户端
