@@ -203,6 +203,15 @@
   var orderFilter = { salesperson: '', keyword: '', phase: '', status: 'active' };
 
   function renderOrders() {
+    // 懒迁移：进度 100% 但状态仍为 active 的订单，自动归档到"已完成"
+    // 幂等操作 —— 每个订单最多被归档一次，已归档的不会再触发
+    var _all = Store.getOrders();
+    for (var i = 0; i < _all.length; i++) {
+      var _o = _all[i];
+      if ((_o.status || 'active') === 'active' && Store.getOrderProgress(_o) >= 100) {
+        Store.archiveOrder(_o.id);
+      }
+    }
     var orders = Store.getOrders();
     var salespersons = Store.getSalespersons();
 
@@ -218,8 +227,20 @@
 
     // 筛选
     var filtered = orders;
-    if (orderFilter.status) {
-      filtered = filtered.filter(function(o) { return (o.status || 'active') === orderFilter.status; });
+    if (orderFilter.status === 'active') {
+      // 进行中：排除"已标记为完成"和"进度 100%"的订单
+      filtered = filtered.filter(function(o) {
+        if ((o.status || 'active') === 'completed') return false;
+        if (Store.getOrderProgress(o) >= 100) return false;
+        return true;
+      });
+    } else if (orderFilter.status === 'completed') {
+      // 已完成：包含"已标记为完成"或"进度 100%"的订单
+      filtered = filtered.filter(function(o) {
+        if ((o.status || 'active') === 'completed') return true;
+        if (Store.getOrderProgress(o) >= 100) return true;
+        return false;
+      });
     }
     if (orderFilter.salesperson) {
       filtered = filtered.filter(function(o) { return o.salesperson === orderFilter.salesperson; });
