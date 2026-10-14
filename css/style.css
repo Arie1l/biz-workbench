@@ -588,7 +588,15 @@ table.data-table tbody tr:last-child td {
   transition: var(--transition);
 }
 
-.task-checkbox.checked {
+.task-item.completed {
+  background: var(--primary-light);
+}
+.task-item.completed:hover {
+  background: #ede9fe;
+}
+.task-item.completed .task-title {
+  color: var(--gray-500);
+}
   background: var(--success);
   border-color: var(--success);
   color: #fff;
@@ -604,9 +612,6 @@ table.data-table tbody tr:last-child td {
 }
 
 .task-item.completed .task-title {
-  text-decoration: line-through;
-  color: var(--gray-400);
-}
 
 .task-desc {
   font-size: 12px;
