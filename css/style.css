@@ -597,6 +597,7 @@ table.data-table tbody tr:last-child td {
 .task-item.completed .task-title {
   color: var(--gray-500);
 }
+.task-checkbox.checked {
   background: var(--success);
   border-color: var(--success);
   color: #fff;
@@ -610,8 +611,6 @@ table.data-table tbody tr:last-child td {
   font-weight: 500;
   color: var(--gray-800);
 }
-
-.task-item.completed .task-title {
 
 .task-desc {
   font-size: 12px;
